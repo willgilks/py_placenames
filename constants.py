@@ -6,7 +6,7 @@ import pandas as pd
 import requests
 
 # Local path where place names data are stored
-DATA_PATH = "IPN_GB_2024/IPN_GB_2024.csv"
+DATA_PATH = "data/IPN_GB_2024.csv"
 
 # URL where the reference data for origins and strings are stored
 WIKI_URL = "https://en.wikipedia.org/wiki/List_of_elements_in_place_names_in_the_British_Isles"
@@ -38,18 +38,21 @@ key_to_languages_table = pd.DataFrame(
 # Place types to keep from the place names source data
 PLACE_TYPES = ["BUA", "LOC", "LONB", "MD", "PAR"]
 
+
+
 # Geometric Base: UK admin-1 boundaries (excluding Northern Ireland) in WGS84 (EPSG:4326)
 _CACHE_GEOJSON = Path("data/gb_boundaries.geojson")
 _NE_ADMIN1_URL = (
-    "https://naciscdn.org"
+    "https://githubusercontent.com"
+    "ne_10m_admin_1_states_provinces.geojson"
 )
 
 if _CACHE_GEOJSON.exists():
     GB_BOUNDARIES = gpd.read_file(_CACHE_GEOJSON)
 else:
-    _resp = requests.get(_NE_ADMIN1_URL, timeout=30)
+    _resp = requests.get(_NE_ADMIN1_URL, timeout=60)
     _resp.raise_for_status()
-    _uk_states = gpd.read_file(BytesIO(_resp.content))
+    _uk_states = gpd.read_file(BytesIO(_resp.content), driver="GeoJSON")
     GB_BOUNDARIES = (
         _uk_states[
             (_uk_states["admin"] == "United Kingdom")
@@ -62,6 +65,7 @@ else:
             )
         )
     )
+
 
 LEAD_REMOVE_STRINGS = [
     "bank", "castle", "chapel", "east", "easter", "ferry",

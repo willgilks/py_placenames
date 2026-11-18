@@ -1,0 +1,638 @@
+term,origin,position,meaning,term_len
+a,"I,SG",prefix,ford,1
+aber,"C,K,P,W",prefix,"mouth (of a river), confluence, a meeting of waters",4
+ac,OE,prefix,"acorn, or oak tree",2
+acc,OE,prefix,"acorn, or oak tree",3
+ach,"I,SG",prefix,field,3
+afon,"Bry,C,I,K,P,SG,W",suffix,river,4
+ar,"I,SG",prefix,"high, height",2
+ard,"I,SG",prefix,ford,3
+ard,"I,SG",prefix,"high, height",3
+as,OE,prefix,east,2
+ash,OE,prefix,ash tree,3
+ast,OE,prefix,east,3
+at,"I,SG",prefix,ford,2
+ath,"I,SG",prefix,ford,3
+auch,"I,SG",prefix,field,4
+auchen,"I,SG",prefix,field,6
+auchenin,"I,SG",prefix,field,8
+auchin,"I,SG",prefix,field,6
+auchter,"I,SG",prefix,"height, top of something",7
+avon,"Bry,C,I,K,P,SG,W",prefix,river,4
+avon,"Bry,C,I,K,P,SG,W",standalone,river,4
+avon,"Bry,C,I,K,P,SG,W",suffix,river,4
+axe,Bry,prefix,"*uɨsk, a Common Brittonic root meaning ""abounding in fish""",3
+axe,Bry,standalone,"*uɨsk, a Common Brittonic root meaning ""abounding in fish""",3
+axe,Bry,suffix,"*uɨsk, a Common Brittonic root meaning ""abounding in fish""",3
+ay,OE,suffix,enclosure,2
+ay,"OE,ON",suffix,island,2
+baan,"I,SG",suffix,white,4
+bach,"OE,ON",suffix,stream,4
+bain,"I,SG",suffix,white,4
+bal,"I,SG",prefix,"farm, homestead or mouth, approach, ford-mouth",3
+ball,"I,SG",prefix,"farm, homestead or mouth, approach, ford-mouth",4
+balla,"I,SG",prefix,"farm, homestead or mouth, approach, ford-mouth",5
+bally,"I,SG",prefix,"farm, homestead or mouth, approach, ford-mouth",5
+ban,"I,SG,W",prefix,"mountain, summit, summits, mountainous",3
+bane,"I,SG",suffix,white,4
+bannau,"I,SG,W",prefix,"mountain, summit, summits, mountainous",6
+bannau,"I,SG,W",standalone,"mountain, summit, summits, mountainous",6
+bannau,"I,SG,W",suffix,"mountain, summit, summits, mountainous",6
+bannock,"I,SG,W",prefix,"mountain, summit, summits, mountainous",7
+baun,"I,SG",suffix,white,4
+beath,"I,SG",suffix,beech,5
+beattie,"I,SG",suffix,beech,7
+beck,"OE,ON",prefix,stream,4
+beck,"OE,ON",suffix,stream,4
+beg,"I,SG",suffix,small,3
+begs,"I,SG",suffix,small,4
+beigh,"I,SG",suffix,beech,5
+beith,"I,SG",suffix,beech,5
+bel,"I,SG",prefix,"mouth, river-mouth",3
+ben,"I,SG,W",prefix,"mountain, summit, summits, mountainous",3
+ben,"I,SG,W",standalone,"mountain, summit, summits, mountainous",3
+ben,"I,SG,W",suffix,"mountain, summit, summits, mountainous",3
+berry,"OE,ON",suffix,hill (cf. 'iceberg'),5
+bex,OE,prefix,boxwood tree,3
+bie,ON,suffix,"settlement, village",3
+blaen,"C,W",prefix,"fell, hill, upland",5
+blen,"C,W",prefix,"fell, hill, upland",4
+boher,I,prefix,road,5
+borough,OE,suffix,fortified enclosure,7
+borris,"I,SG",prefix,"borough, burgage",6
+bost,ON,suffix,farm,4
+bourne,OE,prefix,"large brook, large stream, small river",6
+bourne,OE,standalone,"large brook, large stream, small river",6
+bourne,OE,suffix,"large brook, large stream, small river",6
+boy,"I,SG",suffix,yellow,3
+brack,"I,SG",suffix,"mottled, speckled",5
+brad,OE,prefix,broad,4
+bre,"C,K,W",prefix,hill,3
+breck,"I,SG",suffix,"mottled, speckled",5
+bren,"C,K,P,W",prefix,hill,4
+brin,"C,K,P,W",prefix,hill,4
+brough,OE,suffix,fortified enclosure,6
+bryn,"C,K,P,W",prefix,hill,4
+bue,"I,SG",suffix,yellow,3
+bun,"I,SG",prefix,"river bottom, foot, mouth",3
+burgh,OE,suffix,fortified enclosure,5
+burn,OE,suffix,"large brook, large stream, small river",4
+bury,OE,suffix,fortified enclosure,4
+by,ON,suffix,"settlement, village",2
+caer,"C,P,W",prefix,"camp, fortification",4
+caher,I,prefix,"stone fort, city",5
+caherna,"I,SG",prefix,quarter,7
+cairn,"I,K,SG,W",prefix,"cairn (pile of stones, esp. as a burial mound)",5
+can,"I,SG",prefix,head,3
+cappa,I,prefix,"plot, tillage",5
+cappagh,I,prefix,"plot, tillage",7
+car,"C,P,W",prefix,"camp, fortification",3
+car,I,prefix,"stone fort, city",3
+cardden,"C,P,W",suffix,enclosure,7
+carden,"C,P,W",suffix,enclosure,6
+carhoo,"I,SG",prefix,quarter,6
+carn,"I,K,SG,W",prefix,"cairn (pile of stones, esp. as a burial mound)",4
+carn,"I,SG",prefix,head,4
+carnedd,"I,K,SG,W",prefix,"cairn (pile of stones, esp. as a burial mound)",7
+carrick,"I,SG",prefix,rock,7
+carrig,"I,SG",prefix,rock,6
+carrow,"I,SG",prefix,quarter,6
+carry,"I,SG",prefix,quarter,5
+cashel,I,prefix,stone ringfort,6
+caster,OE,suffix,"camp, fortification (of Roman origin)",6
+cessnock,"I,SG",prefix,"marsh, quagmire",8
+cester,OE,suffix,"camp, fortification (of Roman origin)",6
+chester,OE,suffix,"camp, fortification (of Roman origin)",7
+cheth,C,suffix,wood,5
+chipping,OE,prefix,market,8
+chipping,OE,standalone,market,8
+chipping,OE,suffix,market,8
+cil,"I,SG,W",prefix,"monastic cell, church",3
+clair,"I,SG",prefix,"plain, flat",5
+clare,"I,SG",prefix,"plain, flat",5
+clere,W,suffix,Possibly clear or bright[23],5
+clo,"I,SG",prefix,stone,3
+clogh,"I,SG",prefix,stone,5
+clon,"I,SG",prefix,meadow,4
+clone,"I,SG",prefix,meadow,5
+cloon,"I,SG",prefix,meadow,5
+clough,"I,SG",suffix,stone,6
+cnwc,"Bry,C,I,SG,W",prefix,"hill, rocky hillock",4
+cnwc,"Bry,C,I,SG,W",standalone,"hill, rocky hillock",4
+cnwc,"Bry,C,I,SG,W",suffix,"hill, rocky hillock",4
+coed,W,prefix,"wood, forest",4
+coed,W,standalone,"wood, forest",4
+coed,W,suffix,"wood, forest",4
+cole,"I,SG",prefix,"nook, corner",4
+combe,"Bry,I",suffix,valley,5
+con,"I,SG",prefix,head,3
+cool,"I,SG",prefix,"nook, corner",4
+cool,"I,SG",prefix,"rear, back",4
+coom,"Bry,I",prefix,valley,4
+coombe,"Bry,I",prefix,valley,6
+coombe,"Bry,I",standalone,valley,6
+coombe,"Bry,I",suffix,valley,6
+cor,"I,SG",prefix,small round hill,3
+corr,"I,SG",prefix,small round hill,4
+corrie,"I,SG",prefix,"cirque, corrie",6
+corry,"I,SG",prefix,"cirque, corrie",5
+cot,"OE,W",suffix,"cottage, small building or derived from Bry/W Coed or Coet meaning a wood",3
+cott,"OE,W",suffix,"cottage, small building or derived from Bry/W Coed or Coet meaning a wood",4
+coul,"I,SG",prefix,"rear, back",4
+cr,I,prefix,"stone fort, city",2
+crag,"Bry,I,SG",prefix,A jutting rock.,4
+craig,"Bry,I,SG",prefix,A jutting rock.,5
+craig,"I,SG",prefix,rock,5
+creag,"Bry,I,SG",prefix,A jutting rock.,5
+creag,"Bry,I,SG",standalone,A jutting rock.,5
+creag,"Bry,I,SG",suffix,A jutting rock.,5
+creag,"I,SG",prefix,rock,5
+croes,"I,SG,W",prefix,crossroads,5
+croft,OE,prefix,An enclosed field[26],5
+croft,OE,suffix,An enclosed field[26],5
+cross,"I,SG,W",prefix,crossroads,5
+cuil,"I,SG",prefix,"nook, corner",4
+cul,"C,W",prefix,narrow,3
+cul,"I,SG",prefix,"nook, corner",3
+cul,"I,SG",prefix,"rear, back",3
+cum,"C,W",prefix,valley,3
+cum,L,interfix,with,3
+curra,"I,SG",prefix,"bog, marsh",5
+curragh,"I,SG",prefix,"bog, marsh",7
+currie,"I,SG",prefix,"bog, marsh",6
+curry,"I,SG",prefix,"cirque, corrie",5
+cwm,"C,W",prefix,valley,3
+cxeter,OE,suffix,"camp, fortification (of Roman origin)",6
+dal,"I,SG",prefix,"meadow, low-lying area by river",3
+dale,"OE,ON",suffix,"valley OE, allotment OE",4
+dean,OE,suffix,valley (dene),4
+den,"Bry,OE",suffix,"hill, down",3
+den,OE,suffix,valley (dene),3
+der,"I,SG",prefix,"grove, particularly of oaks",3
+derry,"I,SG",prefix,"grove, particularly of oaks",5
+dhu,"I,SG",prefix,black,3
+dhu,"I,SG",suffix,black,3
+din,"K,W",prefix,fort,3
+dinas,"K,W",prefix,fort,5
+dol,"Bry,P,W",prefix,"meadow, low-lying area by river",3
+don,"Bry,C,I,P,SG",prefix,fort,3
+don,"Bry,OE",suffix,"hill, down",3
+don,OE,suffix,valley (dene),3
+dona,I,prefix,ancient church,4
+donagh,I,prefix,ancient church,6
+donny,I,prefix,ancient church,5
+dor,"I,SG",prefix,"grove, particularly of oaks",3
+dore,"I,SG",prefix,"grove, particularly of oaks",4
+doune,"Bry,C,I,P,SG",prefix,fort,5
+dow,"I,SG",prefix,black,3
+dow,"I,SG",suffix,black,3
+drim,"C,I,SG,W",prefix,"ridge, back",4
+drochit,"I,SG",prefix,bridge,7
+droghed,"I,SG",prefix,bridge,7
+drohed,"I,SG",prefix,bridge,6
+drohid,"I,SG",prefix,bridge,6
+drom,"C,I,SG,W",prefix,"ridge, back",4
+druineach,SG,prefix,uncertain,9
+druineach,SG,standalone,uncertain,9
+druineach,SG,suffix,uncertain,9
+drum,"C,I,SG,W",prefix,"ridge, back",4
+dubh,"I,SG",prefix,black,4
+dubh,"I,SG",suffix,black,4
+duff,"I,SG",prefix,black,4
+duff,"I,SG",suffix,black,4
+dum,"Bry,C,I,P,SG",prefix,fort,3
+dun,"Bry,C,I,P,SG",prefix,fort,3
+eagles,"C,I,K,P,SG,W",prefix,church,6
+eccles,"C,I,K,P,SG,W",prefix,church,6
+eccles,"C,I,K,P,SG,W",standalone,church,6
+eccles,"C,I,K,P,SG,W",suffix,church,6
+eglos,"C,I,K,P,SG,W",prefix,church,5
+eilean,"I,SG",prefix,island,6
+eilean,"I,SG",standalone,island,6
+eilean,"I,SG",suffix,island,6
+ennis,"I,SG",prefix,island,5
+ennis,"I,SG",standalone,island,5
+ennis,"I,SG",suffix,island,5
+esk,Bry,prefix,"*uɨsk, a Common Brittonic root meaning ""abounding in fish""",3
+esk,Bry,standalone,"*uɨsk, a Common Brittonic root meaning ""abounding in fish""",3
+esk,Bry,suffix,"*uɨsk, a Common Brittonic root meaning ""abounding in fish""",3
+esk,I,prefix,esker,3
+esker,I,prefix,esker,5
+esker,I,standalone,esker,5
+esker,I,suffix,esker,5
+eskra,I,prefix,esker,5
+eskra,I,standalone,esker,5
+eskra,I,suffix,esker,5
+eter,OE,suffix,"camp, fortification (of Roman origin)",4
+exe,Bry,prefix,"*uɨsk, a Common Brittonic root meaning ""abounding in fish""",3
+exe,Bry,standalone,"*uɨsk, a Common Brittonic root meaning ""abounding in fish""",3
+exe,Bry,suffix,"*uɨsk, a Common Brittonic root meaning ""abounding in fish""",3
+ey,OE,suffix,enclosure,2
+ey,"OE,ON",suffix,island,2
+farn,"I,SG",prefix,alder,4
+farne,"I,SG",prefix,alder,5
+farran,"I,SG",prefix,piece of land,6
+fear,I,prefix,men (referring to a tribe or clan),4
+fer,I,prefix,men (referring to a tribe or clan),3
+ferin,"I,SG",prefix,piece of land,5
+fern,"I,SG",prefix,alder,4
+ferrin,"I,SG",prefix,piece of land,6
+ffordd,"OE,W",suffix,"ford, crossing, road",6
+field,OE,suffix,"open land, a forest clearing",5
+fin,Bry,prefix,white,3
+fin,"I,SG",prefix,"bright, clear, white, holy",3
+finn,"I,SG",prefix,"bright, clear, white, holy",4
+firth,"OE,W",suffix,"wood or woodland or uncultivated land with small trees and bushes at the edge of cultivated land, especially on hillsides.",5
+firth,"ON,S",prefix,"fjord, inlet",5
+firth,"ON,S",standalone,"fjord, inlet",5
+firth,"ON,S",suffix,"fjord, inlet",5
+fold,OE,suffix,pen (enclosure),4
+force,ON,prefix,waterfall,5
+force,ON,standalone,waterfall,5
+force,ON,suffix,waterfall,5
+ford,"OE,W",suffix,"ford, crossing, road",4
+ford,"ON,S",suffix,"fjord, inlet",4
+forth,"OE,W",suffix,"ford, crossing, road",5
+fos,"L,OE,W",prefix,ditch,3
+foss,"L,OE,W",prefix,ditch,4
+foss,"L,OE,W",standalone,ditch,4
+foss,"L,OE,W",suffix,ditch,4
+foss,ON,prefix,waterfall,4
+foss,ON,standalone,waterfall,4
+foss,ON,suffix,waterfall,4
+frack,"I,SG",suffix,heather (ling),5
+fridd,"OE,W",suffix,"wood or woodland or uncultivated land with small trees and bushes at the edge of cultivated land, especially on hillsides.",5
+frith,"OE,W",suffix,"wood or woodland or uncultivated land with small trees and bushes at the edge of cultivated land, especially on hillsides.",5
+gar,SG,prefix,enclosed field[40],3
+gara,"I,SG",prefix,garden,4
+garry,"I,SG",prefix,garden,5
+gart,SG,prefix,enclosed field[40],4
+garth,"ON,W",suffix,"enclosure, small summit or ridge",5
+garv,"I,SG",suffix,rough,4
+gate,ON,prefix,road,4
+gate,ON,standalone,road,4
+gate,ON,suffix,road,4
+gee,I,suffix,estuary,3
+ghyll,ON,prefix,"ravine, narrow gully",5
+ghyll,ON,standalone,"ravine, narrow gully",5
+ghyll,ON,suffix,"ravine, narrow gully",5
+gill,ON,prefix,"ravine, narrow gully",4
+gill,ON,suffix,"ravine, narrow gully",4
+glas,"C,I,SG,W",suffix,"green, dark grey, pale",4
+glas,"I,SG",prefix,stream,4
+glas,"I,SG",suffix,stream,4
+glass,"C,I,SG,W",suffix,"green, dark grey, pale",5
+glass,"I,SG",prefix,stream,5
+glass,"I,SG",suffix,stream,5
+glaze,"C,I,SG,W",suffix,"green, dark grey, pale",5
+glen,"I,SG,W",prefix,"narrow valley, dale",4
+glen,"I,SG,W",standalone,"narrow valley, dale",4
+glen,"I,SG,W",suffix,"narrow valley, dale",4
+gor,"I,SG",prefix,"enclosure, small field",3
+gorm,"I,SG",suffix,"blue, dark",4
+gort,"I,SG",prefix,"enclosure, small field",4
+gort,"I,SG",standalone,"enclosure, small field",4
+gort,"I,SG",suffix,"enclosure, small field",4
+gorv,"I,SG",suffix,rough,4
+gurran,I,prefix,grove,6
+gurrane,I,prefix,grove,7
+gwee,I,suffix,estuary,4
+ham,OE,suffix,"farm, homestead, [settlement]",3
+hay,OE,suffix,area of land enclosed by a hedge[46],3
+hayes,OE,suffix,area of land enclosed by a hedge[46],5
+hays,OE,suffix,area of land enclosed by a hedge[46],4
+hithe,OE,suffix,"wharf, place for landing boats",5
+holm,"OE,ON",prefix,"holly, island",4
+holm,"OE,ON",suffix,"holly, island",4
+hope,OE,suffix,"valley, enclosed area",4
+howe,ON,prefix,"mound, hill, knoll",4
+howe,ON,standalone,"mound, hill, knoll",4
+howe,ON,suffix,"mound, hill, knoll",4
+hurst,OE,suffix,(wooded) hill,5
+hythe,OE,prefix,"wharf, place for landing boats",5
+hythe,OE,standalone,"wharf, place for landing boats",5
+hythe,OE,suffix,"wharf, place for landing boats",5
+illan,I,prefix,island,5
+illaun,I,prefix,island,6
+in,ME,interfix,"by/""upon"" a river",2
+inch,"C,I,P,SG",prefix,"island, dry area in marsh",4
+inch,"C,I,P,SG",standalone,"island, dry area in marsh",4
+inch,"C,I,P,SG",suffix,"island, dry area in marsh",4
+inch,"I,SG",prefix,island,4
+inch,"I,SG",standalone,island,4
+inch,"I,SG",suffix,island,4
+ineer,"I,SG",prefix,"mouth (of a river), confluence, a meeting of waters",5
+ing,OE,suffix,people of,3
+ing,OE,suffix,"place, small stream",3
+ing1,OE,suffix,people of,4
+ing2,OE,suffix,"place, small stream",4
+ingham,OE,suffix,"ing (1)[57] + ham ('homestead, 'village')[59]",6
+ings,OE,suffix,marshland,4
+ington,OE,suffix,"In most cases it is ing (1)[57] + ton ('town'), with exceptions",6
+inish,"I,SG",prefix,island,5
+inner,"I,SG",prefix,"mouth (of a river), confluence, a meeting of waters",5
+insch,"I,SG",prefix,island,5
+insch,"I,SG",standalone,island,5
+insch,"I,SG",suffix,island,5
+inver,"I,SG",prefix,"mouth (of a river), confluence, a meeting of waters",5
+island,I,prefix,island,6
+keld,ON,prefix,spring,4
+keld,ON,standalone,spring,4
+keld,ON,suffix,spring,4
+ken,"I,SG",prefix,head,3
+keth,C,suffix,wood,4
+kil,"I,SG",prefix,wood,3
+kil,"I,SG,W",prefix,"monastic cell, church",3
+kill,"I,SG",prefix,wood,4
+kill,"I,SG,W",prefix,"monastic cell, church",4
+killie,"I,SG",prefix,wood,6
+killie,"I,SG,W",prefix,"monastic cell, church",6
+kin,"I,SG",prefix,head,3
+king,"OE,ON",prefix,"king, tribal leader",4
+kirk,ON,prefix,church,4
+kirk,ON,suffix,church,4
+kirrie,"I,SG",prefix,quarter,6
+knock,"Bry,C,I,SG,W",prefix,"hill, rocky hillock",5
+knock,"Bry,C,I,SG,W",standalone,"hill, rocky hillock",5
+knock,"Bry,C,I,SG,W",suffix,"hill, rocky hillock",5
+kyle,"I,SG",prefix,wood,4
+kyle,SG,prefix,narrows,4
+kyles,SG,prefix,narrows,5
+lan,"C,K,P,W",prefix,"church, churchyard, village with church, parish",3
+lang,"OE,ON",prefix,long,4
+law,OE,standalone,"from hlaw, a rounded hill",3
+le,NF,interfix,"from archaic French lès,[67] in the vicinity of, near to",2
+lea,"I,SG",suffix,light grey,3
+lea,OE,suffix,"from leah, a woodland clearing",3
+leigh,OE,suffix,"from leah, a woodland clearing",5
+les,"I,SG",prefix,small ringfort,3
+letter,"I,SG",prefix,hillside,6
+ley,OE,suffix,"from leah, a woodland clearing",3
+lhan,"C,K,P,W",prefix,"church, churchyard, village with church, parish",4
+liath,"I,SG",suffix,light grey,5
+lin,"Bry,C,I,P,W",prefix,lake (or simply water),3
+ling,"OE,ON",prefix,heather,4
+lip,"OE,ON",suffix,leap,3
+lis,"I,SG",prefix,small ringfort,3
+liss,"I,SG",prefix,small ringfort,4
+llan,"C,K,P,W",prefix,"church, churchyard, village with church, parish",4
+llyn,"Bry,C,I,P,W",prefix,lake (or simply water),4
+loch,"C,I,SG",prefix,"lake, sea inlet",4
+loch,"C,I,SG",standalone,"lake, sea inlet",4
+loch,"C,I,SG",suffix,"lake, sea inlet",4
+longfor,"I,SG",prefix,landing-place for boats,7
+longford,"I,SG",prefix,landing-place for boats,8
+longford,"I,SG",standalone,landing-place for boats,8
+longford,"I,SG",suffix,landing-place for boats,8
+lorgan,I,suffix,long ridge,6
+lough,"C,I,SG",prefix,"lake, sea inlet",5
+lough,"C,I,SG",standalone,"lake, sea inlet",5
+lough,"C,I,SG",suffix,"lake, sea inlet",5
+low,OE,standalone,"from hlaw, a rounded hill",3
+lurgan,I,prefix,long ridge,6
+lurgan,I,standalone,long ridge,6
+lurgan,I,suffix,long ridge,6
+lus,"I,SG",prefix,small ringfort,3
+lynn,"Bry,C,I,P,W",prefix,lake (or simply water),4
+ma,"I,SG",prefix,plain,2
+maam,"I,SG",prefix,mountain pass,4
+maam,"I,SG",standalone,mountain pass,4
+maam,"I,SG",suffix,mountain pass,4
+magna,L,prefix,"great, big",5
+magna,L,standalone,"great, big",5
+magna,L,suffix,"great, big",5
+mam,"I,SG",prefix,mountain pass,3
+mam,"I,SG",standalone,mountain pass,3
+mam,"I,SG",suffix,mountain pass,3
+maum,"I,SG",prefix,mountain pass,4
+mawr,W,prefix,"large, great",4
+mawr,W,standalone,"large, great",4
+mawr,W,suffix,"large, great",4
+may,"I,SG",prefix,plain,3
+mere,OE,suffix,"lake, pool",4
+miln,"I,SG",prefix,mill,4
+mini,"I,SG",prefix,thicket,4
+minster,OE,prefix,"large church, monastery",7
+minster,OE,standalone,"large church, monastery",7
+minster,OE,suffix,"large church, monastery",7
+moan,"I,SG",suffix,peatland,4
+moi,"I,SG",prefix,plain,3
+mona,"I,SG",suffix,peatland,4
+mona,"I,SG",suffix,thicket,4
+monaster,I,prefix,monastery,8
+money,"I,SG",prefix,peatland,5
+money,"I,SG",prefix,thicket,5
+money,"I,SG",suffix,peatland,5
+money,"I,SG",suffix,thicket,5
+more,"I,SG",suffix,"large, great",4
+moss,"OE,S",prefix,"Swamp, bog",4
+moss,"OE,S",standalone,"Swamp, bog",4
+moss,"OE,S",suffix,"Swamp, bog",4
+mouth,ME,suffix,"Mouth (of a river), bay",5
+mul,"I,SG",prefix,mill,3
+mulh,"I,SG",prefix,summit,4
+mulla,"I,SG",prefix,summit,5
+mullagh,"I,SG",prefix,summit,7
+mullin,"I,SG",prefix,mill,6
+mynydd,W,prefix,mountain,6
+nan,K,prefix,valley,3
+nans,K,prefix,valley,4
+nant,"C,W",prefix,ravine or the stream in it,4
+ness,"OE,ON",suffix,"promontory, headland (literally 'nose')",4
+noe,"I,SG",suffix,new,3
+nor,OE,prefix,north,3
+ock,OE,suffix,"acorn, or oak tree",3
+on,ME,interfix,"by/""upon"" a river",2
+orlar,"I,SG",suffix,flat,5
+owen,I,prefix,river,4
+pant,"C,P,W",prefix,a hollow,4
+pant,"C,P,W",standalone,a hollow,4
+pant,"C,P,W",suffix,a hollow,4
+parva,L,prefix,little,5
+parva,L,standalone,little,5
+parva,L,suffix,little,5
+pen,"C,K,P,W",prefix,"head (headland or hill), top, far end of, end of",3
+phairn,"I,SG",prefix,alder,6
+phoen,"I,SG",prefix,"bright, clear, white, holy",5
+pit,"Bry,P,SG",prefix,"portion, share, farm",3
+pol,"C,I,K,SG,W",prefix,"pool, lake, hole",3
+poll,"C,I,K,SG,W",prefix,"pool, lake, hole",4
+pont,"C,K,L,W",prefix,bridge,4
+pool,OE,suffix,harbour,4
+port,I,prefix,"stronghold, fort",4
+port,"I,ME",prefix,"port, harbour, landing-ground",4
+port,"I,ME",standalone,"port, harbour, landing-ground",4
+port,"I,ME",suffix,"port, harbour, landing-ground",4
+porth,"K,W",prefix,harbour,5
+poul,"C,I,K,SG,W",prefix,"pool, lake, hole",4
+pwll,"C,I,K,SG,W",prefix,"pool, lake, hole",4
+quilla,"I,SG",prefix,wood,6
+rah,"I,SG",prefix,small ringfort,3
+rait,"I,SG",prefix,small ringfort,4
+rath,"I,SG",prefix,small ringfort,4
+rea,"I,SG",suffix,"streaked, speckled",3
+reagh,"I,SG",suffix,"streaked, speckled",5
+reen,"I,SG,W",prefix,"headland, promontory",4
+ren,"I,SG,W",prefix,"headland, promontory",3
+reva,"I,SG",suffix,"streaked, speckled",4
+revagh,"I,SG",suffix,"streaked, speckled",6
+rhyn,"I,SG,W",prefix,"headland, promontory",4
+riach,"I,SG",suffix,"streaked, speckled",5
+rig,"ON,S",suffix,ridge,3
+rigg,"ON,S",suffix,ridge,4
+rin,"I,SG,W",prefix,"headland, promontory",3
+rine,"I,SG,W",prefix,"headland, promontory",4
+ring,"I,SG,W",prefix,"headland, promontory",4
+roe,"I,SG",suffix,"red, red-brown",3
+ros,"I,SG",prefix,"wood, wooded promontory",3
+rose,"I,SG",prefix,"wood, wooded promontory",4
+rosh,"I,SG",prefix,"wood, wooded promontory",4
+ross,"I,SG",prefix,"wood, wooded promontory",4
+roy,"I,SG",suffix,"red, red-brown",3
+royd,OE,suffix,"field, clearing",4
+rus,"I,SG",prefix,"wood, wooded promontory",3
+rush,"I,SG",prefix,"wood, wooded promontory",4
+sall,"I,SG",prefix,willow,4
+sally,"I,SG",suffix,willow,5
+sax,"C,OE",suffix,"Saxon, Englishman",3
+screen,I,suffix,shrine,6
+seskin,"I,SG",prefix,"marsh, quagmire",6
+sex,"C,OE",suffix,"Saxon, Englishman",3
+sgiack,"I,SG",prefix,"bush, hawthorn",6
+sgiack,"I,SG",standalone,"bush, hawthorn",6
+sgiack,"I,SG",suffix,"bush, hawthorn",6
+shan,"I,SG",prefix,old,4
+shaw,OE,standalone,"a wood, a thicket",4
+shaw,OE,suffix,"a wood, a thicket",4
+shellach,"I,SG",suffix,willow,8
+shep,OE,prefix,sheep,4
+sheskin,"I,SG",prefix,"marsh, quagmire",7
+ship,OE,prefix,sheep,4
+shire,OE,suffix,county,5
+ske,"I,SG",prefix,"bush, hawthorn",3
+skeagh,"I,SG",suffix,"bush, hawthorn",6
+skeith,"I,SG",suffix,"bush, hawthorn",6
+skreen,I,prefix,shrine,6
+skreen,I,standalone,shrine,6
+skreen,I,suffix,shrine,6
+skryne,I,prefix,shrine,6
+skryne,I,standalone,shrine,6
+skryne,I,suffix,shrine,6
+sla,"I,SG",prefix,mountain,3
+slieve,"I,SG",prefix,mountain,6
+sra,"C,I,P,SG",prefix,"floodplain, strath",3
+sragh,"C,I,P,SG",prefix,"floodplain, strath",5
+srah,"C,I,P,SG",prefix,"floodplain, strath",4
+stan,OE,prefix,"stone, stony",4
+stead,OE,suffix,"place, enclosed pasture",5
+ster,ON,suffix,farm,4
+stoke,OE,standalone,"dependent farmstead, secondary settlement",5
+stow,OE,prefix,(holy) place (of assembly),4
+stow,OE,standalone,(holy) place (of assembly),4
+stow,OE,suffix,(holy) place (of assembly),4
+stra,"C,I,P,SG",prefix,"floodplain, strath",4
+strad,"C,I,P,SG",prefix,"floodplain, strath",5
+strath,"C,I,P,SG",prefix,"floodplain, strath",6
+straw,"C,I,P,SG",prefix,"floodplain, strath",5
+streat,"L,OE",prefix,road (Roman),6
+street,"L,OE",prefix,road (Roman),6
+street,"L,OE",standalone,road (Roman),6
+street,"L,OE",suffix,road (Roman),6
+sud,OE,prefix,south,3
+suf,OE,prefix,south,3
+sut,OE,prefix,south,3
+swin,OE,prefix,"pigs, swine",4
+ta,"I,SG",prefix,house,2
+tagh,"I,SG",prefix,house,4
+tarmon,I,prefix,"sanctuary, boundary",6
+tarn,ON,prefix,lake,4
+tarn,ON,standalone,lake,4
+tarn,ON,suffix,lake,4
+taugh,"I,SG",prefix,house,5
+tay,"I,SG",prefix,house,3
+te,"I,SG",prefix,house,2
+tee,"I,SG",prefix,house,3
+temple,"I,SG",prefix,church,6
+ter,"I,SG",prefix,"country, land",3
+termon,I,prefix,"sanctuary, boundary",6
+thorp,ON,prefix,secondary settlement,5
+thorpe,ON,prefix,secondary settlement,6
+thorpe,ON,suffix,secondary settlement,6
+thwaite,ON,suffix,"a forest clearing with a dwelling, or parcel of land",7
+ti,"I,SG",prefix,house,2
+tieve,I,prefix,hillside,5
+tigh,"I,SG",prefix,house,4
+tilly,SG,prefix,hillock,5
+tir,"I,SG",prefix,"country, land",3
+tober,"I,SG",prefix,well,5
+tober,"I,SG",suffix,well,5
+toft,ON,suffix,homestead,4
+ton,OE,suffix,"enclosure, estate, homestead",3
+too,I,prefix,hillside,3
+toom,I,prefix,"tumulus, burial-mound",4
+toome,I,prefix,"tumulus, burial-mound",5
+tra,"C,K,P,W",prefix,settlement,3
+tra,"I,K,SG,W",prefix,beach,3
+traeth,"I,K,SG,W",prefix,beach,6
+traeth,"I,K,SG,W",standalone,beach,6
+traeth,"I,K,SG,W",suffix,beach,6
+tre,"C,K,P,W",prefix,settlement,3
+try,"I,K,SG,W",suffix,beach,3
+tuam,I,prefix,"tumulus, burial-mound",4
+tuam,I,standalone,"tumulus, burial-mound",4
+tuam,I,suffix,"tumulus, burial-mound",4
+tubber,"I,SG",prefix,well,6
+tubber,"I,SG",standalone,well,6
+tubber,"I,SG",suffix,well,6
+tulla,"I,SG",prefix,"hillock, mound, heap",5
+tullagh,"I,SG",prefix,"hillock, mound, heap",7
+tullie,SG,prefix,hillock,6
+tulloch,SG,prefix,hillock,7
+tullos,"I,SG",prefix,"hillock, mound, heap",6
+tullow,"I,SG",prefix,"hillock, mound, heap",6
+tully,"I,SG",prefix,"hillock, mound, heap",5
+tun,OE,prefix,"enclosure, estate, homestead",3
+turlagh,I,prefix,turlough,7
+turlough,I,prefix,turlough,8
+twatt,ON,suffix,"a forest clearing with a dwelling, or parcel of land",5
+tyr,"I,SG",prefix,"country, land",3
+upon,ME,interfix,"by/""upon"" a river",4
+urlar,"I,SG",prefix,flat,5
+urlar,"I,SG",standalone,flat,5
+urlar,"I,SG",suffix,flat,5
+urlaur,"I,SG",prefix,flat,6
+urlaur,"I,SG",standalone,flat,6
+urlaur,"I,SG",suffix,flat,6
+usk,Bry,prefix,"*uɨsk, a Common Brittonic root meaning ""abounding in fish""",3
+usk,Bry,standalone,"*uɨsk, a Common Brittonic root meaning ""abounding in fish""",3
+usk,Bry,suffix,"*uɨsk, a Common Brittonic root meaning ""abounding in fish""",3
+vea,"I,SG",suffix,beech,3
+veagh,"I,SG",suffix,beech,5
+vei,"I,SG",suffix,beech,3
+veigh,"I,SG",suffix,beech,5
+ven,"I,SG",prefix,"bright, clear, white, holy",3
+vin,Bry,prefix,white,3
+vinny,"I,SG",suffix,thicket,5
+wall,OE,prefix,foreigners,4
+wall,OE,suffix,foreigners,4
+walla,OE,prefix,foreigners,5
+wardine,OE,suffix,enclosure,7
+weald,OE,prefix,high woodland,5
+wes,OE,prefix,west,3
+wich,"L,OE",suffix,"place, settlement",4
+wick,"L,OE",suffix,"place, settlement",4
+wick,ON,suffix,bay,4
+willa,OE,prefix,foreigners,5
+win,Bry,prefix,white,3
+winna,"I,SG",suffix,thicket,5
+wold,OE,prefix,high woodland,4
+wold,OE,standalone,high woodland,4
+wold,OE,suffix,high woodland,4
+worth,OE,suffix,enclosure,5
+worthy,OE,suffix,enclosure,6
+wych,"L,OE",suffix,"place, settlement",4
+wyke,"L,OE",suffix,"place, settlement",4
+y,"OE,ON",suffix,island,1
+ynys,W,prefix,island,4
+ynys,W,standalone,island,4
+ynys,W,suffix,island,4

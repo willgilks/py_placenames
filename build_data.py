@@ -49,7 +49,11 @@ def run_pipeline() -> None:
     data_root = os.getenv("DATA_PATH_ROOT", "")
     full_data_path = Path(data_root) / DATA_PATH if data_root else Path(DATA_PATH)
     print(f"Loading raw place names from: {full_data_path}")
-    placenames_dat_raw = pd.read_csv(full_data_path, low_memory=False)
+    # placenames_dat_raw = pd.read_csv(full_data_path, low_memory=False)
+
+    placenames_dat_raw = pd.read_csv(
+        full_data_path, encoding="latin1", low_memory=False
+    )
 
     # Basic filter and standardisation
     placenames_initial_clean = clean_placenames_data(

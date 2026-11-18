@@ -2,3 +2,5 @@
 *.pyo
 __pycache__/
 .venv
+IPN_GB_2024.csv
+.DS_Store
