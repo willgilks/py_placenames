@@ -8,12 +8,14 @@ import requests
 # Local path where place names data are stored
 DATA_PATH = "data/IPN_GB_2024.csv"
 
-# URL where the reference data for origins and strings are stored
-WIKI_URL = "https://en.wikipedia.org/wiki/List_of_elements_in_place_names_in_the_British_Isles"
+# url for wiki table on matching place name strings to origins.
+WIKI_URL = (
+    "https://en.wikipedia.org/wiki/List_of_elements_in_place_names_in_the_British_Isles"
+)
 
 ALLOWED_STRING_POSITIONS = ["interfix", "prefix", "standalone", "suffix"]
 
-# Lookup for matching abbreviated origin name with full origin name
+# full origin names and abbreviations
 KEY_TO_LANGUAGES = {
     "Bry": "Brythonic",
     "C": "Cumbric",
@@ -39,13 +41,9 @@ key_to_languages_table = pd.DataFrame(
 PLACE_TYPES = ["BUA", "LOC", "LONB", "MD", "PAR"]
 
 
-
-# Geometric Base: UK admin-1 boundaries (excluding Northern Ireland) in WGS84 (EPSG:4326)
+# prepare co-ordinates for counties of the uk but excluding northern ireland.
 _CACHE_GEOJSON = Path("data/gb_boundaries.geojson")
-_NE_ADMIN1_URL = (
-    "https://githubusercontent.com"
-    "ne_10m_admin_1_states_provinces.geojson"
-)
+_NE_ADMIN1_URL = "https://githubusercontent.comne_10m_admin_1_states_provinces.geojson"
 
 if _CACHE_GEOJSON.exists():
     GB_BOUNDARIES = gpd.read_file(_CACHE_GEOJSON)
@@ -66,25 +64,101 @@ else:
         )
     )
 
-
+# words to remove from the front of place names before origin pattern matching
 LEAD_REMOVE_STRINGS = [
-    "bank", "castle", "chapel", "east", "easter", "ferry",
-    "garrison", "garden", "gardeners", "great", "gate",
-    "high", "higher", "low", "lower", "little",
-    "marsh", "middle", "new", "north", "old", "port",
+    "bank",
+    "castle",
+    "chapel",
+    "east",
+    "easter",
+    "ferry",
+    "garrison",
+    "garden",
+    "gardeners",
+    "great",
+    "gate",
+    "high",
+    "higher",
+    "low",
+    "lower",
+    "little",
+    "marsh",
+    "middle",
+    "new",
+    "north",
+    "old",
+    "port",
     "south",
-    "temple", "the", "upper", "west", "windmill",
+    "temple",
+    "the",
+    "upper",
+    "west",
+    "windmill",
 ]
 
+# words to remove from the end of place names before origin pattern matching.
 TERMINAL_REMOVE_STRINGS = [
-    "bank", "camp", "castle", "city", "colliery", "common", "corner", "cottages", "creek", "crossing",
-    "east", "easter", "end", "edge", "estate",
-    "docks", "down", "drive",
-    "farm", "ferry", "field", "fields", "foot", "forest",
-    "garden", "gardens", "garrison", "gate", "granch", "grange", "green", "grove",
-    "heath", "house", "junction", "lane", "lodge", "lower",
-    "marsh", "mead", "meadow", "meadows", "mill", "mills", "moor", "old",
-    "park", "parks", "passage", "plain", "place", "port", "priors",
-    "quay", "rd", "side", "south", "st", "street",
-    "vale", "valley", "view", "village",
+    "bank",
+    "camp",
+    "castle",
+    "city",
+    "colliery",
+    "common",
+    "corner",
+    "cottages",
+    "creek",
+    "crossing",
+    "east",
+    "easter",
+    "end",
+    "edge",
+    "estate",
+    "docks",
+    "down",
+    "drive",
+    "farm",
+    "ferry",
+    "field",
+    "fields",
+    "foot",
+    "forest",
+    "garden",
+    "gardens",
+    "garrison",
+    "gate",
+    "granch",
+    "grange",
+    "green",
+    "grove",
+    "heath",
+    "house",
+    "junction",
+    "lane",
+    "lodge",
+    "lower",
+    "marsh",
+    "mead",
+    "meadow",
+    "meadows",
+    "mill",
+    "mills",
+    "moor",
+    "old",
+    "park",
+    "parks",
+    "passage",
+    "plain",
+    "place",
+    "port",
+    "priors",
+    "quay",
+    "rd",
+    "side",
+    "south",
+    "st",
+    "street",
+    "vale",
+    "valley",
+    "view",
+    "village",
 ]

@@ -9,8 +9,9 @@ import pandas as pd
 import plotly.graph_objects as go
 
 
+# make colour bins for map plot values
 def _pretty_bins(min_val: float, max_val: float, n: int = 5) -> list[float]:
-    """Replicates R's pretty(c(min_val, max_val), n = 5) bin breakpoints."""
+    """make colour bin breakpoints."""
     if np.isnan(min_val) or np.isnan(max_val) or min_val == max_val:
         upper = max(1.0, float(max_val) if not np.isnan(max_val) else 1.0)
         return [0.0, upper]
@@ -43,7 +44,7 @@ def _pretty_bins(min_val: float, max_val: float, n: int = 5) -> list[float]:
 
 
 def _extract_poly_coords(geom) -> tuple[list[float | None], list[float | None]]:
-    """Extracts x (lon) and y (lat) coordinate lists separated by None for MultiPolygons."""
+    """get co-ordinate lists separated by None for MultiPolygons."""
     xs: list[float | None] = []
     ys: list[float | None] = []
 
@@ -61,6 +62,7 @@ def _extract_poly_coords(geom) -> tuple[list[float | None], list[float | None]]:
     return xs, ys
 
 
+# make british county map object
 def build_gb_county_map(
     county_data: pd.DataFrame,
     ptitle: str,
