@@ -5,16 +5,15 @@ import pandas as pd
 from shiny import App, reactive, render, ui
 from shinywidgets import output_widget, render_widget
 
-from functions_plotting import (
-    leaflet_multi_wrapper,
-    make_leaflet_map,
-    render_multi_map_grid,
-)
+from functions_plotting import make_leaflet_map, make_small_multiples_figure
 
-# Load pre-computed datasets from ./data/
+# Load pre-computed datasets from ./data/ and keep only needed columns
 DATA_DIR = Path("data")
 county_plot_dat = pd.read_csv(DATA_DIR / "county_plot_dat.csv")
-gb_boundaries = gpd.read_file(DATA_DIR / "gb_boundaries.geojson")
+gb_boundaries = (
+    gpd.read_file(DATA_DIR / "gb_boundaries.geojson")[["name", "geometry"]]
+    .assign(geometry=lambda df: df.geometry.simplify(tolerance=0.004, preserve_topology=True))
+)
 
 ORIGINS = sorted(county_plot_dat["origin"].dropna().unique().tolist())
 
@@ -27,7 +26,7 @@ app_ui = ui.page_navbar(
                     "selected_origin",
                     "Select Linguistic Origin:",
                     choices=ORIGINS,
-                    selected=ORIGINS if ORIGINS else None,
+                    selected=ORIGINS[0] if ORIGINS else None,
                 ),
                 ui.input_switch(
                     "fix_scale",
@@ -42,6 +41,7 @@ app_ui = ui.page_navbar(
             ),
             ui.card(
                 ui.card_header(ui.output_text("single_map_title")),
+                ui.tags.style(".leaflet-container { background: #add8e6 !important; }"),
                 output_widget("single_origin_map"),
                 full_screen=True,
             ),
@@ -49,7 +49,7 @@ app_ui = ui.page_navbar(
     ),
     ui.nav_panel(
         "All Origins Grid",
-        render_multi_map_grid([None] * len(ORIGINS)),
+        ui.uiOutput("all_origins_grid_img"),
     ),
     title="GB Place Name Origins",
 )
@@ -58,19 +58,20 @@ app_ui = ui.page_navbar(
 def server(input, output, session):
     @reactive.calc
     def filtered_origin_df() -> pd.DataFrame:
-        return county_plot_dat[
-            county_plot_dat["origin"] == input.selected_origin()
-        ].drop_duplicates()
+        chosen = input.selected_origin() or ORIGINS[0]
+        return county_plot_dat[county_plot_dat["origin"] == chosen].drop_duplicates()
 
     @render.text
     def single_map_title() -> str:
-        return f"Percentage of Place Names with {input.selected_origin()} Origin"
+        chosen = input.selected_origin() or ORIGINS[0]
+        return f"Percentage of Place Names with {chosen} Origin"
 
     @render_widget
     def single_origin_map():
+        chosen = input.selected_origin() or ORIGINS[0]
         return make_leaflet_map(
             leaflet_county_data=filtered_origin_df(),
-            ptitle=input.selected_origin(),
+            ptitle=chosen,
             gb_boundaries=gb_boundaries,
             fix_percent_scale=input.fix_scale(),
             zoom_restrict=False,
@@ -78,22 +79,13 @@ def server(input, output, session):
             height="650px",
         )
 
-    # Register all small-multiple maps for the "All Origins Grid" tab
-    all_maps = leaflet_multi_wrapper(
-        input_df=county_plot_dat,
-        gb_boundaries=gb_boundaries,
-    )
-
-    for idx, m in enumerate(all_maps):
-
-        def _register_map(map_obj, widget_id):
-            def _map_widget():
-                return map_obj
-
-            _map_widget.__name__ = widget_id
-            render_widget(_map_widget)
-
-        _register_map(m, f"origin_map_{idx}")
+    @render.ui
+    def all_origins_grid_img():
+        b64_png = make_small_multiples_figure(county_plot_dat, gb_boundaries)
+        return ui.tags.img(
+            src=f"data:image/png;base64,{b64_png}",
+            style="width: 100%; height: auto; border-radius: 6px;",
+        )
 
 
 app = App(app_ui, server)
