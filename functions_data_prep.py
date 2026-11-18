@@ -1,14 +1,21 @@
 import itertools
 import re
+import unicodedata
 from io import StringIO
 
+import geopandas as gpd
+import numpy as np
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
 from constants import (
     ALLOWED_STRING_POSITIONS,
+    GB_BOUNDARIES,
     KEY_TO_LANGUAGES,
+    LEAD_REMOVE_STRINGS,
+    PLACE_TYPES,
+    TERMINAL_REMOVE_STRINGS,
     WIKI_URL,
 )
 
@@ -278,3 +285,152 @@ def prepare_wiki_data(
         "source_placenames_origins": source_placenames_origins,
         "term_origin_position_dat": term_origin_position_dat,
         }
+
+
+
+
+def _latin_ascii(text: str) -> str:
+    """Replicates stringi::stri_trans_general(x, 'Latin-ASCII')."""
+    if pd.isna(text):
+        return text
+    normalized = unicodedata.normalize("NFKD", str(text))
+    return normalized.encode("ascii", "ignore").decode("ascii")
+
+
+def clean_placenames_data(
+    input_df: pd.DataFrame,
+    place_types: list[str] = PLACE_TYPES,
+    lead_remove_strings: list[str] = LEAD_REMOVE_STRINGS,
+    terminal_remove_strings: list[str] = TERMINAL_REMOVE_STRINGS,
+) -> pd.DataFrame:
+    """Filters and normalises raw GB place names data."""
+    all_lead_and_termin_strings = set(lead_remove_strings) | set(terminal_remove_strings)
+
+    # Pre-compile compact grouped regex patterns
+    lead_pattern = re.compile(rf"^({'|'.join(map(re.escape, lead_remove_strings))})\s+")
+    term_pattern = re.compile(rf"\s+({'|'.join(map(re.escape, terminal_remove_strings))})$")
+    bad_suffix_pattern = r"\s+(?:church|closes?|copses?|lands?|parks?|shop|square)$"
+
+    # 1. Filter early on un-mutated columns before running string ops
+    df = input_df[
+        input_df["descnm"].isin(place_types)
+        & ~((input_df["cty61nm"] == "Cornwall and Isles of Scilly") & (input_df["descnm"] == "LOC"))
+        & (input_df["lat"] != 0)
+        & (input_df["long"] != 0)
+        & (input_df["lat"] > 49)
+        & (input_df["long"] > -8)
+    ][["tempcode", "placeid", "place23nm", "descnm", "lat", "long", "ctry23nm", "cty61nm"]].copy()
+
+    # 2. Fast ASCII transliteration
+    df["place23nm_repaired"] = df["place23nm"].map(_latin_ascii)
+
+    df = df[
+        (df["place23nm_repaired"] != "Area not comprised")
+        & (~df["place23nm_repaired"].str.contains(bad_suffix_pattern, case=False, regex=True, na=False))
+    ].copy()
+
+    df["place23nm_repaired_length"] = df["place23nm_repaired"].str.len()
+
+    # 3. Single-pass cleanup for place23nm_mod
+    df["place23nm_mod"] = (
+        df["place23nm_repaired"]
+        .str.replace(r"\s*\([^)]*\)|\s+\b(?:by|in|and)\b.*", "", regex=True)
+        .str.replace(r"\s+", " ", regex=True)
+        .str.strip()
+    )
+
+    # 4. Vectorised normalisation for searchable_placename
+    searchable = (
+        df["place23nm_mod"]
+        .str.lower()
+        .str.replace("-", " ", regex=False)
+        .str.replace(".", "", regex=False)
+        .str.replace(r"(?:,|\s+&|\s+with\s+|\s+urban|\s+on\s+).*", "", regex=True)
+        .str.strip()
+    )
+
+    # Two passes of leading & terminal word stripping (for compound modifiers like "New High ...")
+    for _ in range(2):
+        searchable = (
+            searchable.str.replace(lead_pattern, "", n=1, regex=True)
+            .str.replace(term_pattern, "", n=1, regex=True)
+            .str.strip()
+        )
+
+    df["searchable_placename_length"] = searchable.str.len()
+    df["searchable_placename"] = np.where(
+        (searchable == "") | searchable.isin(all_lead_and_termin_strings),
+        np.nan,
+        searchable,
+    )
+
+    return df.reset_index(drop=True)
+
+
+def assign_counties_from_sf(
+    input_df: pd.DataFrame,
+    gb_boundaries: gpd.GeoDataFrame = GB_BOUNDARIES,
+) -> pd.DataFrame:
+    """Assigns counties to place names based on their lat/long and a reference GeoDataFrame."""
+    geo_dat_input = (
+        input_df[["tempcode", "placeid", "place23nm_mod", "lat", "long"]]
+        .drop_duplicates()
+        .copy()
+    )
+
+    geo_dat_sf = gpd.GeoDataFrame(
+        geo_dat_input,
+        geometry=gpd.points_from_xy(geo_dat_input["long"], geo_dat_input["lat"]),
+        crs="EPSG:4326",
+    )
+
+    # Spatial join (matches st_join(..., join = st_intersects))
+    # Note: if a point lies on a shared border, keep first match to avoid duplicating rows
+    geo_lookup_result = gpd.sjoin(
+        geo_dat_sf,
+        gb_boundaries[["name", "geometry"]],
+        how="left",
+        predicate="intersects",
+    )
+    geo_lookup_result = geo_lookup_result[~geo_lookup_result.index.duplicated(keep="first")]
+
+    place_county_reference = (
+        pd.DataFrame(geo_lookup_result.drop(columns=["geometry", "index_right"]))
+        .rename(columns={"name": "county_name"})
+        [["tempcode", "placeid", "place23nm_mod", "lat", "long", "county_name"]]
+    )
+
+    is_missing = place_county_reference["county_name"].isna() | (
+        place_county_reference["county_name"] == ""
+    )
+    known_towns = place_county_reference[~is_missing].copy()
+    missing_towns = place_county_reference[is_missing].copy()
+
+    if len(missing_towns) > 0 and len(known_towns) > 0:
+        known_sf = gpd.GeoDataFrame(
+            known_towns,
+            geometry=gpd.points_from_xy(known_towns["long"], known_towns["lat"]),
+            crs="EPSG:4326",
+        ).to_crs(epsg=27700)  # British National Grid (metres) for accurate nearest-neighbour distance
+
+        missing_sf = gpd.GeoDataFrame(
+            missing_towns,
+            geometry=gpd.points_from_xy(missing_towns["long"], missing_towns["lat"]),
+            crs="EPSG:4326",
+        ).to_crs(epsg=27700)
+
+        nearest_joined = gpd.sjoin_nearest(
+            missing_sf[["geometry"]],
+            known_sf[["county_name", "geometry"]],
+            how="left",
+        )
+        nearest_joined = nearest_joined[~nearest_joined.index.duplicated(keep="first")]
+        missing_towns["county_name"] = nearest_joined["county_name"].values
+
+    combined_ref = pd.concat([known_towns, missing_towns], ignore_index=True)
+
+    return input_df.merge(
+        combined_ref,
+        on=["tempcode", "placeid", "place23nm_mod", "lat", "long"],
+        how="left",
+    )
