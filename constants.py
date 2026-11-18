@@ -1,5 +1,9 @@
+from io import BytesIO
+from pathlib import Path
+
 import geopandas as gpd
 import pandas as pd
+import requests
 
 # Local path where place names data are stored
 DATA_PATH = "IPN_GB_2024/IPN_GB_2024.csv"
@@ -35,22 +39,29 @@ key_to_languages_table = pd.DataFrame(
 PLACE_TYPES = ["BUA", "LOC", "LONB", "MD", "PAR"]
 
 # Geometric Base: UK admin-1 boundaries (excluding Northern Ireland) in WGS84 (EPSG:4326)
+_CACHE_GEOJSON = Path("data/gb_boundaries.geojson")
 _NE_ADMIN1_URL = (
     "https://naciscdn.org"
 )
-_uk_states = gpd.read_file(_NE_ADMIN1_URL)
-GB_BOUNDARIES = (
-    _uk_states[
-        (_uk_states["admin"] == "United Kingdom")
-        & (_uk_states["region"] != "Northern Ireland")
-    ]
-    .to_crs(epsg=4326)
-    .assign(
-        geometry=lambda df: df.geometry.simplify(
-            tolerance=0.001, preserve_topology=True
+
+if _CACHE_GEOJSON.exists():
+    GB_BOUNDARIES = gpd.read_file(_CACHE_GEOJSON)
+else:
+    _resp = requests.get(_NE_ADMIN1_URL, timeout=30)
+    _resp.raise_for_status()
+    _uk_states = gpd.read_file(BytesIO(_resp.content))
+    GB_BOUNDARIES = (
+        _uk_states[
+            (_uk_states["admin"] == "United Kingdom")
+            & (_uk_states["region"] != "Northern Ireland")
+        ]
+        .to_crs(epsg=4326)
+        .assign(
+            geometry=lambda df: df.geometry.simplify(
+                tolerance=0.001, preserve_topology=True
+            )
         )
     )
-)
 
 LEAD_REMOVE_STRINGS = [
     "bank", "castle", "chapel", "east", "easter", "ferry",
