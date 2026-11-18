@@ -5,7 +5,7 @@ import pandas as pd
 from shiny import App, reactive, render, ui
 from shinywidgets import output_widget, render_widget
 
-from functions_plotting import make_county_choropleth
+from functions_plotting import build_gb_county_map
 
 # Load pre-computed datasets from ./data/ once at startup
 DATA_DIR = Path("data")
@@ -15,7 +15,6 @@ gb_boundaries = gpd.read_file(DATA_DIR / "gb_boundaries.geojson")[
 ].assign(
     geometry=lambda df: df.geometry.simplify(tolerance=0.004, preserve_topology=True)
 )
-GB_GEOJSON = gb_boundaries.__geo_interface__
 
 ORIGINS = sorted(county_plot_dat["origin"].dropna().unique().tolist())
 DEFAULT_ORIGIN = ORIGINS if ORIGINS else ""
@@ -62,11 +61,10 @@ def server(input, output, session):
     @render_widget
     def single_origin_map():
         chosen = input.selected_origin() or DEFAULT_ORIGIN
-        return make_county_choropleth(
+        return build_gb_county_map(
             county_data=filtered_origin_df(),
             ptitle=chosen,
             gb_boundaries=gb_boundaries,
-            geojson_obj=GB_GEOJSON,
             fix_percent_scale=input.fix_scale(),
         )
 

@@ -42,16 +42,33 @@ def _pretty_bins(min_val: float, max_val: float, n: int = 5) -> list[float]:
     )
 
 
-def make_county_choropleth(
+def _extract_poly_coords(geom) -> tuple[list[float | None], list[float | None]]:
+    """Extracts x (lon) and y (lat) coordinate lists separated by None for MultiPolygons."""
+    xs: list[float | None] = []
+    ys: list[float | None] = []
+
+    if geom is None or geom.is_empty:
+        return xs, ys
+
+    polys = [geom] if geom.geom_type == "Polygon" else list(geom.geoms)
+    for poly in polys:
+        x_ext, y_ext = poly.exterior.xy
+        xs.extend(x_ext)
+        ys.extend(y_ext)
+        xs.append(None)
+        ys.append(None)
+
+    return xs, ys
+
+
+def build_gb_county_map(
     county_data: pd.DataFrame,
     ptitle: str,
     gb_boundaries: gpd.GeoDataFrame,
-    geojson_obj: dict,
     fix_percent_scale: bool = False,
 ) -> go.Figure:
-    """Plots a clean, tile-free GB county choropleth using Plotly."""
-    base_geo = gb_boundaries[["name"]].copy()
-    merged = base_geo.merge(
+    """Plots a clean GB county choropleth map with zero external map tiles."""
+    merged = gb_boundaries[["name", "geometry"]].merge(
         county_data, left_on="name", right_on="county_name", how="left"
     )
     merged["pc"] = merged["pc"].fillna(0.0)
@@ -78,15 +95,18 @@ def make_county_choropleth(
 
     def get_fill_color(val: float) -> str:
         if pd.isna(val) or val == 0:
-            return "#FFFFFF"
+            return "#F8F9FA"
         return step_cmap(val)
 
-    merged["fill_color"] = merged["pc"].map(get_fill_color)
+    fig = go.Figure()
 
-    # Build rich hover labels matching your original R Leaflet popups
-    hover_texts = []
     for _, row in merged.iterrows():
+        xs, ys = _extract_poly_coords(row["geometry"])
+        if not xs:
+            continue
+
         pc_val = float(row["pc"])
+        fill_col = get_fill_color(pc_val)
         n_places = round(float(row["n_places"])) if pd.notna(row.get("n_places")) else 0
         n_county = (
             round(float(row["n_county_places"]))
@@ -102,44 +122,28 @@ def make_county_choropleth(
             matches_lines = "<br>".join(
                 part.strip() for part in str(raw_matches).split(".") if part.strip()
             )
-            hover_texts.append(f"{header}<br><br>{matches_lines}")
+            hover_text = f"{header}<br><br>{matches_lines}"
         else:
-            hover_texts.append(header)
+            hover_text = header
 
-    merged["hover_text"] = hover_texts
-
-    # Assign each county a discrete integer bucket for exact stepped legend colours
-    unique_colors = ["#FFFFFF"] + bin_colors
-    color_to_idx = {c: i for i, c in enumerate(unique_colors)}
-    merged["color_idx"] = merged["fill_color"].map(color_to_idx)
-
-    # Build discrete Plotly colorscale
-    n_total = len(unique_colors)
-    discrete_scale = []
-    for i, hex_col in enumerate(unique_colors):
-        discrete_scale.append([i / n_total, hex_col])
-        discrete_scale.append([(i + 1) / n_total, hex_col])
-
-    fig = go.Figure(
-        go.Choropleth(
-            geojson=geojson_obj,
-            locations=merged["name"],
-            featureidkey="properties.name",
-            z=merged["color_idx"],
-            zmin=0,
-            zmax=n_total,
-            colorscale=discrete_scale,
-            showscale=False,
-            text=merged["hover_text"],
-            hoverinfo="text",
-            marker_line_color="black",
-            marker_line_width=0.6,
+        fig.add_trace(
+            go.Scatter(
+                x=xs,
+                y=ys,
+                mode="lines",
+                fill="toself",
+                fillcolor=fill_col,
+                line={"color": "#333333", "width": 0.6},
+                text=hover_text,
+                hoverinfo="text",
+                hoveron="fills",
+                showlegend=False,
+            )
         )
-    )
 
-    # Add a clean, readable categorical legend for your exact bins + 0 (None)
-    legend_entries = [("0% (None)", "#FFFFFF")] + [
-        (f"{round(map_bins[i], 1)} – {round(map_bins[i + 1], 1)}%", bin_colors[i])
+    # Categorical legend entries
+    legend_entries = [("0% (None)", "#F8F9FA")] + [
+        (f"{round(map_bins[i], 1)}–{round(map_bins[i + 1], 1)}%", bin_colors[i])
         for i in range(len(map_bins) - 1)
     ]
     for label, hex_col in reversed(legend_entries):
@@ -149,10 +153,10 @@ def make_county_choropleth(
                 y=[None],
                 mode="markers",
                 marker={
-                    "size": 12,
+                    "size": 13,
                     "color": hex_col,
                     "symbol": "square",
-                    "line": {"color": "black", "width": 0.8},
+                    "line": {"color": "#333333", "width": 0.8},
                 },
                 name=label,
                 showlegend=True,
@@ -160,27 +164,34 @@ def make_county_choropleth(
             )
         )
 
-    fig.update_geos(
-        fitbounds="locations",
-        visible=False,
-        bgcolor="#add8e6",
-    )
-
     fig.update_layout(
         margin={"l": 0, "r": 0, "t": 10, "b": 0},
-        paper_bgcolor="#add8e6",
-        plot_bgcolor="#add8e6",
-        height=680,
-        xaxis={"visible": False},
-        yaxis={"visible": False},
+        paper_bgcolor="white",
+        plot_bgcolor="white",
+        height=720,
+        dragmode="pan",
+        xaxis={
+            "visible": False,
+            "range": [-8.5, 3.0],
+            "autorange": False,
+            "fixedrange": False,
+        },
+        yaxis={
+            "visible": False,
+            "range": [49.8, 61.0],
+            "autorange": False,
+            "scaleanchor": "x",
+            "scaleratio": 1.72,
+            "fixedrange": False,
+        },
         legend={
             "title": {"text": f"<b>{ptitle}</b>"},
             "x": 0.98,
             "y": 0.98,
             "xanchor": "right",
             "yanchor": "top",
-            "bgcolor": "rgba(255, 255, 255, 0.9)",
-            "bordercolor": "black",
+            "bgcolor": "rgba(255, 255, 255, 0.95)",
+            "bordercolor": "#333333",
             "borderwidth": 0.8,
         },
         hoverlabel={
@@ -190,4 +201,4 @@ def make_county_choropleth(
         },
     )
 
-    return fig
+    return go.FigureWidget(fig)
