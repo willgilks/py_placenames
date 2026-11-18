@@ -5,9 +5,9 @@ import pandas as pd
 from shiny import App, reactive, render, ui
 from shinywidgets import output_widget, render_widget
 
-from functions_plotting import create_base_map, update_leaflet_map
+from functions_plotting import make_county_choropleth
 
-# Load pre-computed datasets from ./data/
+# Load pre-computed datasets from ./data/ once at startup
 DATA_DIR = Path("data")
 county_plot_dat = pd.read_csv(DATA_DIR / "county_plot_dat.csv")
 gb_boundaries = gpd.read_file(DATA_DIR / "gb_boundaries.geojson")[
@@ -15,8 +15,10 @@ gb_boundaries = gpd.read_file(DATA_DIR / "gb_boundaries.geojson")[
 ].assign(
     geometry=lambda df: df.geometry.simplify(tolerance=0.004, preserve_topology=True)
 )
+GB_GEOJSON = gb_boundaries.__geo_interface__
 
 ORIGINS = sorted(county_plot_dat["origin"].dropna().unique().tolist())
+DEFAULT_ORIGIN = ORIGINS if ORIGINS else ""
 
 app_ui = ui.page_sidebar(
     ui.sidebar(
@@ -24,7 +26,7 @@ app_ui = ui.page_sidebar(
             "selected_origin",
             "Select Linguistic Origin:",
             choices=ORIGINS,
-            selected=ORIGINS[0] if ORIGINS else None,
+            selected=DEFAULT_ORIGIN,
         ),
         ui.input_switch(
             "fix_scale",
@@ -33,13 +35,12 @@ app_ui = ui.page_sidebar(
         ),
         ui.hr(),
         ui.p(
-            "Click any county polygon to view matching place name elements and examples.",
+            "Hover over any county to view matching place name elements and examples. Scroll or drag to zoom and pan.",
             class_="text-muted small",
         ),
     ),
     ui.card(
         ui.card_header(ui.output_text("single_map_title")),
-        ui.tags.style(".leaflet-container { background: #add8e6 !important; }"),
         output_widget("single_origin_map"),
         full_screen=True,
     ),
@@ -48,35 +49,24 @@ app_ui = ui.page_sidebar(
 
 
 def server(input, output, session):
-    # Create the map widget once per user session
-    map_widget = create_base_map(
-        zoom_restrict=False,
-        starting_zoom=6,
-        height="650px",
-    )
-
-    @render_widget
-    def single_origin_map():
-        return map_widget
-
     @reactive.calc
     def filtered_origin_df() -> pd.DataFrame:
-        chosen = input.selected_origin() or ORIGINS[0]
+        chosen = input.selected_origin() or DEFAULT_ORIGIN
         return county_plot_dat[county_plot_dat["origin"] == chosen].drop_duplicates()
 
     @render.text
     def single_map_title() -> str:
-        chosen = input.selected_origin() or ORIGINS[0]
+        chosen = input.selected_origin() or DEFAULT_ORIGIN
         return f"Percentage of Place Names with {chosen} Origin"
 
-    @reactive.effect
-    def _sync_map_data():
-        chosen = input.selected_origin() or ORIGINS[0]
-        update_leaflet_map(
-            m=map_widget,
-            leaflet_county_data=filtered_origin_df(),
+    @render_widget
+    def single_origin_map():
+        chosen = input.selected_origin() or DEFAULT_ORIGIN
+        return make_county_choropleth(
+            county_data=filtered_origin_df(),
             ptitle=chosen,
             gb_boundaries=gb_boundaries,
+            geojson_obj=GB_GEOJSON,
             fix_percent_scale=input.fix_scale(),
         )
 

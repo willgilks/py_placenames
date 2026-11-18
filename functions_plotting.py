@@ -6,8 +6,7 @@ import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from ipyleaflet import GeoJSON, LegendControl, Map, Popup, ZoomControl
-from ipywidgets import HTML, Layout
+import plotly.graph_objects as go
 
 
 def _pretty_bins(min_val: float, max_val: float, n: int = 5) -> list[float]:
@@ -43,47 +42,21 @@ def _pretty_bins(min_val: float, max_val: float, n: int = 5) -> list[float]:
     )
 
 
-def create_base_map(
-    zoom_restrict: bool = False,
-    starting_zoom: int = 6,
-    height: str = "650px",
-) -> Map:
-    """Creates a single reusable ipyleaflet Map with exactly one zoom control."""
-    m = Map(
-        center=(55.25, -2.75),
-        zoom=starting_zoom,
-        min_zoom=starting_zoom if zoom_restrict else 5,
-        max_zoom=starting_zoom if zoom_restrict else 10,
-        zoom_control=False,
-        dragging=not zoom_restrict,
-        scroll_wheel_zoom=not zoom_restrict,
-        attribution_control=False,
-        layout=Layout(width="100%", height=height),
-    )
-    m.clear_controls()
-    if not zoom_restrict:
-        m.add_control(ZoomControl(position="topleft"))
-    return m
-
-
-def update_leaflet_map(
-    m: Map,
-    leaflet_county_data: pd.DataFrame,
-    ptitle: str = "",
-    gb_boundaries: gpd.GeoDataFrame | None = None,
+def make_county_choropleth(
+    county_data: pd.DataFrame,
+    ptitle: str,
+    gb_boundaries: gpd.GeoDataFrame,
+    geojson_obj: dict,
     fix_percent_scale: bool = False,
-) -> None:
-    """Updates an existing ipyleaflet Map's GeoJSON layer and Legend in place."""
-    if gb_boundaries is None:
-        return
-
-    base_geo = gb_boundaries[["name", "geometry"]].copy()
-    boundaries_with_data = base_geo.merge(
-        leaflet_county_data, left_on="name", right_on="county_name", how="left"
+) -> go.Figure:
+    """Plots a clean, tile-free GB county choropleth using Plotly."""
+    base_geo = gb_boundaries[["name"]].copy()
+    merged = base_geo.merge(
+        county_data, left_on="name", right_on="county_name", how="left"
     )
-    boundaries_with_data["pc"] = boundaries_with_data["pc"].fillna(0.0)
+    merged["pc"] = merged["pc"].fillna(0.0)
 
-    domain_vals = boundaries_with_data["pc"].astype(float)
+    domain_vals = merged["pc"].astype(float)
     max_domain_val = float(domain_vals.max()) if len(domain_vals) > 0 else 0.0
     min_domain_val = float(domain_vals.min()) if len(domain_vals) > 0 else 0.0
 
@@ -99,7 +72,7 @@ def update_leaflet_map(
     step_cmap = cm.StepColormap(
         colors=bin_colors,
         index=map_bins,
-        vmin=map_bins[0],
+        vmin=map_bins,
         vmax=map_bins[-1],
     )
 
@@ -108,10 +81,11 @@ def update_leaflet_map(
             return "#FFFFFF"
         return step_cmap(val)
 
-    boundaries_with_data["fillColor"] = boundaries_with_data["pc"].map(get_fill_color)
+    merged["fill_color"] = merged["pc"].map(get_fill_color)
 
-    popup_htmls = []
-    for _, row in boundaries_with_data.iterrows():
+    # Build rich hover labels matching your original R Leaflet popups
+    hover_texts = []
+    for _, row in merged.iterrows():
         pc_val = float(row["pc"])
         n_places = round(float(row["n_places"])) if pd.notna(row.get("n_places")) else 0
         n_county = (
@@ -120,74 +94,100 @@ def update_leaflet_map(
             else 0
         )
 
-        county_name_text = f"<b>{row['name']}</b><br>"
-        origin_text = f"<span>{round(pc_val)}% {ptitle} ({n_places}/{n_county})</span>"
-
-        example_text = ""
+        header = (
+            f"<b>{row['name']}</b><br>{round(pc_val)}% {ptitle} ({n_places}/{n_county})"
+        )
         raw_matches = row.get("strings_and_matches")
         if pd.notna(raw_matches) and str(raw_matches).strip() != "":
-            hover_subtext = str(raw_matches).replace(".", "<br>")
-            example_text = f"<br><span style='font-size:12px;'>{hover_subtext}</span>"
+            matches_lines = "<br>".join(
+                part.strip() for part in str(raw_matches).split(".") if part.strip()
+            )
+            hover_texts.append(f"{header}<br><br>{matches_lines}")
+        else:
+            hover_texts.append(header)
 
-        popup_htmls.append(f"{county_name_text}{origin_text}{example_text}")
+    merged["hover_text"] = hover_texts
 
-    boundaries_with_data["popup_html"] = popup_htmls
+    # Assign each county a discrete integer bucket for exact stepped legend colours
+    unique_colors = ["#FFFFFF"] + bin_colors
+    color_to_idx = {c: i for i, c in enumerate(unique_colors)}
+    merged["color_idx"] = merged["fill_color"].map(color_to_idx)
 
-    geojson_dict = boundaries_with_data[
-        ["name", "pc", "fillColor", "popup_html", "geometry"]
-    ].__geo_interface__
+    # Build discrete Plotly colorscale
+    n_total = len(unique_colors)
+    discrete_scale = []
+    for i, hex_col in enumerate(unique_colors):
+        discrete_scale.append([i / n_total, hex_col])
+        discrete_scale.append([(i + 1) / n_total, hex_col])
 
-    def style_callback(feature: dict) -> dict:
-        return {
-            "fillColor": feature["properties"]["fillColor"],
-            "fillOpacity": 1.0,
-            "weight": 0.5,
-            "color": "black",
-        }
-
-    geo_layer = GeoJSON(
-        data=geojson_dict,
-        style_callback=style_callback,
+    fig = go.Figure(
+        go.Choropleth(
+            geojson=geojson_obj,
+            locations=merged["name"],
+            featureidkey="properties.name",
+            z=merged["color_idx"],
+            zmin=0,
+            zmax=n_total,
+            colorscale=discrete_scale,
+            showscale=False,
+            text=merged["hover_text"],
+            hoverinfo="text",
+            marker_line_color="black",
+            marker_line_width=0.6,
+        )
     )
 
-    def on_feature_click(event: str, feature: dict, **kwargs) -> None:
-        coords = kwargs.get("coordinates", (55.25, -2.75))
-        html_widget = HTML(
-            value=(
-                "<div style='max-height:150px; max-width:180px; overflow-y:auto;'>"
-                f"{feature['properties']['popup_html']}</div>"
+    # Add a clean, readable categorical legend for your exact bins + 0 (None)
+    legend_entries = [("0% (None)", "#FFFFFF")] + [
+        (f"{round(map_bins[i], 1)} – {round(map_bins[i + 1], 1)}%", bin_colors[i])
+        for i in range(len(map_bins) - 1)
+    ]
+    for label, hex_col in reversed(legend_entries):
+        fig.add_trace(
+            go.Scatter(
+                x=[None],
+                y=[None],
+                mode="markers",
+                marker={
+                    "size": 12,
+                    "color": hex_col,
+                    "symbol": "square",
+                    "line": {"color": "black", "width": 0.8},
+                },
+                name=label,
+                showlegend=True,
+                hoverinfo="skip",
             )
         )
-        popup = Popup(
-            location=coords,
-            child=html_widget,
-            close_button=True,
-            auto_close=True,
-            close_on_escape_key=True,
-            auto_pan=False,
-        )
-        m.add_layer(popup)
 
-    geo_layer.on_click(on_feature_click)
-
-    # Remove old GeoJSON/Popup layers and old LegendControls before adding updated ones
-    m.clear_layers()
-    m.add_layer(geo_layer)
-
-    for ctrl in list(m.controls):
-        if isinstance(ctrl, LegendControl):
-            m.remove_control(ctrl)
-
-    legend_dict = {}
-    for i in range(len(map_bins) - 1):
-        label = f"{round(map_bins[i], 1)} – {round(map_bins[i + 1], 1)}"
-        legend_dict[label] = bin_colors[i]
-    legend_dict["0 (None)"] = "#FFFFFF"
-
-    m.add_control(
-        LegendControl(
-            legend_dict,
-            title=ptitle or "Percentage (%)",
-            position="topright",
-        )
+    fig.update_geos(
+        fitbounds="locations",
+        visible=False,
+        bgcolor="#add8e6",
     )
+
+    fig.update_layout(
+        margin={"l": 0, "r": 0, "t": 10, "b": 0},
+        paper_bgcolor="#add8e6",
+        plot_bgcolor="#add8e6",
+        height=680,
+        xaxis={"visible": False},
+        yaxis={"visible": False},
+        legend={
+            "title": {"text": f"<b>{ptitle}</b>"},
+            "x": 0.98,
+            "y": 0.98,
+            "xanchor": "right",
+            "yanchor": "top",
+            "bgcolor": "rgba(255, 255, 255, 0.9)",
+            "bordercolor": "black",
+            "borderwidth": 0.8,
+        },
+        hoverlabel={
+            "bgcolor": "white",
+            "font_size": 12,
+            "align": "left",
+        },
+    )
+
+    return fig
