@@ -20,7 +20,9 @@ from constants import (
 )
 
 
-def get_wiki_placenames_lookup(wiki_url: str = WIKI_URL) -> pd.DataFrame:
+# pull origin strings from wiki
+# def get_wiki_placenames_lookup(wiki_url: str = WIKI_URL) -> pd.DataFrame:
+def pull_wiki_origin_strings(wiki_url: str = WIKI_URL) -> pd.DataFrame:
     """Pulls string and origin info tables from the Wikipedia URL."""
     headers = {"User-Agent": "Mozilla/5.0 (compatible; PlaceNamesApp/1.0)"}
     response = requests.get(wiki_url, headers=headers, timeout=15)
@@ -36,6 +38,7 @@ def get_wiki_placenames_lookup(wiki_url: str = WIKI_URL) -> pd.DataFrame:
     return pd.concat(dfs, ignore_index=True)
 
 
+# for source strings where part of it is in brackets, make these into independent strings.
 def expand_optional_parens(terms: pd.Series) -> pd.Series:
     """Expands optional parenthetical blocks like 'auch(en)/(in)' into comma-separated terms."""
 
@@ -79,6 +82,7 @@ def expand_optional_parens(terms: pd.Series) -> pd.Series:
     return terms.apply(_expand_cell)
 
 
+# re-structure the wiki table for origins and search strings to make it usable.
 def prepare_wiki_data(
     input_df: pd.DataFrame,
     key_to_languages: dict = KEY_TO_LANGUAGES,
@@ -114,13 +118,9 @@ def prepare_wiki_data(
 
     # Remove characters in square brackets and parentheses
     for col in ["term", "origin", "position", "example"]:
-        clean_base[col] = clean_base[col].str.replace(
-            r"\s*\[[^\]]*\]", "", regex=True
-        )
+        clean_base[col] = clean_base[col].str.replace(r"\s*\[[^\]]*\]", "", regex=True)
     for col in ["origin", "position", "example"]:
-        clean_base[col] = clean_base[col].str.replace(
-            r"\s*\([^)]*\)", "", regex=True
-        )
+        clean_base[col] = clean_base[col].str.replace(r"\s*\([^)]*\)", "", regex=True)
 
     # Standardise weird strings in term column
     clean_base["term"] = clean_base["term"].str.replace(
@@ -150,10 +150,10 @@ def prepare_wiki_data(
         (clean_base["origin"] != "") & (clean_base["term"] != "")
     ].copy()
 
-    # Explode terms with optional brackets
+    # Explode search strings with optional brackets
     clean_base["term"] = expand_optional_parens(clean_base["term"])
 
-    # Explode term and example pairs
+    # Explode search string and example pairs, so that there's one row per search string and example.
     term_example_pairs = clean_base.copy()
     term_example_pairs["term"] = term_example_pairs["term"].str.split(",")
     term_example_pairs = term_example_pairs.explode("term")
@@ -201,6 +201,7 @@ def prepare_wiki_data(
     )
 
     # Position inference when position is missing
+    # This compares the source search string to the source example place names to deduce the position.
     missing_pos = term_example_pairs[term_example_pairs["position"] == ""].copy()
     has_term = missing_pos.apply(
         lambda row: row["term"] in row["example_clean"], axis=1
@@ -254,13 +255,13 @@ def prepare_wiki_data(
     expanded_terms["term"] = expanded_terms["term"].str.strip()
     expanded_terms = expanded_terms[expanded_terms["term"] != ""].copy()
 
-    merged = expanded_terms.merge(
-        inferred_positions, on=["term", "origin"], how="left"
-    )
+    merged = expanded_terms.merge(inferred_positions, on=["term", "origin"], how="left")
     merged["position"] = merged.apply(
-        lambda r: (r["inferred_position"] or "")
-        if r["position"] == "" and pd.notna(r["inferred_position"])
-        else r["position"],
+        lambda r: (
+            (r["inferred_position"] or "")
+            if r["position"] == "" and pd.notna(r["inferred_position"])
+            else r["position"]
+        ),
         axis=1,
     )
     merged = merged[merged["position"] != ""].copy()
@@ -268,15 +269,14 @@ def prepare_wiki_data(
     merged["position"] = merged["position"].str.split(",")
     merged = merged.explode("position")
 
-    term_origin_position_dat = (
-        merged.groupby(["term", "position", "meaning"], as_index=False)["origin"]
-        .agg(lambda s: ",".join(sorted({o for item in s for o in item.split(",")})))
+    term_origin_position_dat = merged.groupby(
+        ["term", "position", "meaning"], as_index=False
+    )["origin"].agg(
+        lambda s: ",".join(sorted({o for item in s for o in item.split(",")}))
     )
     term_origin_position_dat["term_len"] = term_origin_position_dat["term"].str.len()
     term_origin_position_dat = (
-        term_origin_position_dat[
-            ["term", "origin", "position", "meaning", "term_len"]
-        ]
+        term_origin_position_dat[["term", "origin", "position", "meaning", "term_len"]]
         .sort_values(["term", "origin", "position"])
         .reset_index(drop=True)
     )
@@ -284,11 +284,10 @@ def prepare_wiki_data(
     return {
         "source_placenames_origins": source_placenames_origins,
         "term_origin_position_dat": term_origin_position_dat,
-        }
+    }
 
 
-
-
+# helper function to remove non-standard characters from source place names
 def _latin_ascii(text: str) -> str:
     """Replicates stringi::stri_trans_general(x, 'Latin-ASCII')."""
     if pd.isna(text):
@@ -297,6 +296,7 @@ def _latin_ascii(text: str) -> str:
     return normalized.encode("ascii", "ignore").decode("ascii")
 
 
+# standardises and prepares list of uk place names.
 def clean_placenames_data(
     input_df: pd.DataFrame,
     place_types: list[str] = PLACE_TYPES,
@@ -304,34 +304,57 @@ def clean_placenames_data(
     terminal_remove_strings: list[str] = TERMINAL_REMOVE_STRINGS,
 ) -> pd.DataFrame:
     """Filters and normalises raw GB place names data."""
-    all_lead_and_termin_strings = set(lead_remove_strings) | set(terminal_remove_strings)
+    all_lead_and_termin_strings = set(lead_remove_strings) | set(
+        terminal_remove_strings
+    )
 
     # Pre-compile compact grouped regex patterns
     lead_pattern = re.compile(rf"^({'|'.join(map(re.escape, lead_remove_strings))})\s+")
-    term_pattern = re.compile(rf"\s+({'|'.join(map(re.escape, terminal_remove_strings))})$")
+    term_pattern = re.compile(
+        rf"\s+({'|'.join(map(re.escape, terminal_remove_strings))})$"
+    )
     bad_suffix_pattern = r"\s+(?:church|closes?|copses?|lands?|parks?|shop|square)$"
 
-    # 1. Filter early on un-mutated columns before running string ops
+    # remove rows containing nonsense info.
     df = input_df[
         input_df["descnm"].isin(place_types)
-        & ~((input_df["cty61nm"] == "Cornwall and Isles of Scilly") & (input_df["descnm"] == "LOC"))
+        & ~(
+            (input_df["cty61nm"] == "Cornwall and Isles of Scilly")
+            & (input_df["descnm"] == "LOC")
+        )
         & (input_df["lat"] != 0)
         & (input_df["long"] != 0)
         & (input_df["lat"] > 49)
         & (input_df["long"] > -8)
-    ][["tempcode", "placeid", "place23nm", "descnm", "lat", "long", "ctry23nm", "cty61nm"]].copy()
+    ][
+        [
+            "tempcode",
+            "placeid",
+            "place23nm",
+            "descnm",
+            "lat",
+            "long",
+            "ctry23nm",
+            "cty61nm",
+        ]
+    ].copy()
 
-    # 2. Fast ASCII transliteration
+    # remove nonsense characters from place names
     df["place23nm_repaired"] = df["place23nm"].map(_latin_ascii)
 
     df = df[
         (df["place23nm_repaired"] != "Area not comprised")
-        & (~df["place23nm_repaired"].str.contains(bad_suffix_pattern, case=False, regex=True, na=False))
+        & (
+            ~df["place23nm_repaired"].str.contains(
+                bad_suffix_pattern, case=False, regex=True, na=False
+            )
+        )
     ].copy()
 
+    # get length of repaired place name, for downstream prioritisation.
     df["place23nm_repaired_length"] = df["place23nm_repaired"].str.len()
 
-    # 3. Single-pass cleanup for place23nm_mod
+    # remove unrequired parts of place name.
     df["place23nm_mod"] = (
         df["place23nm_repaired"]
         .str.replace(r"\s*\([^)]*\)|\s+\b(?:by|in|and)\b.*", "", regex=True)
@@ -339,7 +362,7 @@ def clean_placenames_data(
         .str.strip()
     )
 
-    # 4. Vectorised normalisation for searchable_placename
+    # remove more unrequired parts of place name.
     searchable = (
         df["place23nm_mod"]
         .str.lower()
@@ -349,7 +372,7 @@ def clean_placenames_data(
         .str.strip()
     )
 
-    # Two passes of leading & terminal word stripping (for compound modifiers like "New High ...")
+    # remove common leader and follower words like Green or Park, from place name.
     for _ in range(2):
         searchable = (
             searchable.str.replace(lead_pattern, "", n=1, regex=True)
@@ -367,6 +390,7 @@ def clean_placenames_data(
     return df.reset_index(drop=True)
 
 
+# assign counties to place names based on lat and long compared to the uk spatial object.
 def assign_counties_from_sf(
     input_df: pd.DataFrame,
     gb_boundaries: gpd.GeoDataFrame = GB_BOUNDARIES,
@@ -385,20 +409,22 @@ def assign_counties_from_sf(
     )
 
     # Spatial join (matches st_join(..., join = st_intersects))
-    # Note: if a point lies on a shared border, keep first match to avoid duplicating rows
+    # if a point lies on a shared border, keep first match to avoid duplicating rows
     geo_lookup_result = gpd.sjoin(
         geo_dat_sf,
         gb_boundaries[["name", "geometry"]],
         how="left",
         predicate="intersects",
     )
-    geo_lookup_result = geo_lookup_result[~geo_lookup_result.index.duplicated(keep="first")]
+    geo_lookup_result = geo_lookup_result[
+        ~geo_lookup_result.index.duplicated(keep="first")
+    ]
 
-    place_county_reference = (
-        pd.DataFrame(geo_lookup_result.drop(columns=["geometry", "index_right"]))
-        .rename(columns={"name": "county_name"})
-        [["tempcode", "placeid", "place23nm_mod", "lat", "long", "county_name"]]
-    )
+    place_county_reference = pd.DataFrame(
+        geo_lookup_result.drop(columns=["geometry", "index_right"])
+    ).rename(columns={"name": "county_name"})[
+        ["tempcode", "placeid", "place23nm_mod", "lat", "long", "county_name"]
+    ]
 
     is_missing = place_county_reference["county_name"].isna() | (
         place_county_reference["county_name"] == ""
@@ -411,7 +437,9 @@ def assign_counties_from_sf(
             known_towns,
             geometry=gpd.points_from_xy(known_towns["long"], known_towns["lat"]),
             crs="EPSG:4326",
-        ).to_crs(epsg=27700)  # British National Grid (metres) for accurate nearest-neighbour distance
+        ).to_crs(
+            epsg=27700
+        )  # British National Grid (metres) for accurate nearest-neighbour distance
 
         missing_sf = gpd.GeoDataFrame(
             missing_towns,
