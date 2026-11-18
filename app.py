@@ -10,9 +10,10 @@ from functions_plotting import make_leaflet_map, make_small_multiples_figure
 # Load pre-computed datasets from ./data/ and keep only needed columns
 DATA_DIR = Path("data")
 county_plot_dat = pd.read_csv(DATA_DIR / "county_plot_dat.csv")
-gb_boundaries = (
-    gpd.read_file(DATA_DIR / "gb_boundaries.geojson")[["name", "geometry"]]
-    .assign(geometry=lambda df: df.geometry.simplify(tolerance=0.004, preserve_topology=True))
+gb_boundaries = gpd.read_file(DATA_DIR / "gb_boundaries.geojson")[
+    ["name", "geometry"]
+].assign(
+    geometry=lambda df: df.geometry.simplify(tolerance=0.004, preserve_topology=True)
 )
 
 ORIGINS = sorted(county_plot_dat["origin"].dropna().unique().tolist())
@@ -49,7 +50,7 @@ app_ui = ui.page_navbar(
     ),
     ui.nav_panel(
         "All Origins Grid",
-        ui.uiOutput("all_origins_grid_img"),
+        ui.output_ui("all_origins_grid_img"),
     ),
     title="GB Place Name Origins",
 )
