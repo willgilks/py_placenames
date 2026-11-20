@@ -135,11 +135,25 @@ def post_prep_matched_names(
         & (assignment_result_df["comb_origins"] != "Unknown")
     ]
 
+    # helper function
+    def _unique_sorted_origins(series: pd.Series) -> str:
+        tokens = {
+            tok.strip()
+            for cell in series.dropna()
+            for tok in str(cell).split(",")
+            if tok.strip()
+        }
+        return ",".join(sorted(tokens))
+
+    # aggregate, collapse strings.
     initial_sum_df = valid_assignments.groupby(
         "searchable_placename", as_index=False
     ).agg(
-        comb_origins=("comb_origins", lambda s: ",".join(sorted(set(s)))),
-        text_matches=("exact_match_text", lambda s: ",".join(pd.unique(s.dropna()))),
+        comb_origins=("comb_origins", _unique_sorted_origins),
+        text_matches=(
+            "exact_match_text",
+            lambda s: ",".join(pd.unique(s.dropna())),
+        ),
     )
 
     # Join place names with origins back to main data
