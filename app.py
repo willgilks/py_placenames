@@ -2,6 +2,7 @@ from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
+import plotly.graph_objects as go
 from shiny import App, reactive, render, ui
 from shinywidgets import output_widget, render_widget
 
@@ -34,6 +35,19 @@ DOWNLOADABLE_TABLES: dict[str, pd.DataFrame] = {
     "Place level data": matched_and_filtered_dat,
 }
 
+
+# Pre-build all origin figures once when the app starts (near top of app.py)
+PREBUILT_MAPS = {
+    origin: build_gb_county_map(
+        county_data=county_plot_dat[
+            county_plot_dat["origin"] == origin
+        ].drop_duplicates(),
+        ptitle=origin,
+        gb_boundaries=gb_boundaries,
+        hover_examples_max_lines=5,
+    )
+    for origin in ORIGINS
+}
 
 # DEFINE UI ####
 app_ui = ui.page_sidebar(
@@ -89,6 +103,9 @@ app_ui = ui.page_sidebar(
 
 # DEFINE SERVER ####
 def server(input, output, session):
+
+    map_widget = go.FigureWidget(PREBUILT_MAPS[DEFAULT_ORIGIN])
+
     @reactive.calc
     def filtered_origin_df() -> pd.DataFrame:
         chosen = input.selected_origin() or DEFAULT_ORIGIN
@@ -99,15 +116,36 @@ def server(input, output, session):
         chosen = input.selected_origin() or DEFAULT_ORIGIN
         return f"Percentage of Place Names with {chosen} Origin"
 
+    # @render_widget
+    # def single_origin_map():
+    #     chosen = input.selected_origin() or DEFAULT_ORIGIN
+    #     return build_gb_county_map(
+    #         county_data=filtered_origin_df(),
+    #         ptitle=chosen,
+    #         gb_boundaries=gb_boundaries,
+    #         hover_examples_max_lines=5,
+    #     )
+
     @render_widget
     def single_origin_map():
+        return map_widget
+
+    @reactive.effect
+    def _update_map():
         chosen = input.selected_origin() or DEFAULT_ORIGIN
-        return build_gb_county_map(
-            county_data=filtered_origin_df(),
-            ptitle=chosen,
-            gb_boundaries=gb_boundaries,
-            hover_examples_max_lines=5,
-        )
+        target = PREBUILT_MAPS[chosen]
+
+        with map_widget.batch_update():
+            for i, trace in enumerate(target.data):
+                if i < len(map_widget.data):
+                    map_widget.data[i].fillcolor = trace.fillcolor
+                    map_widget.data[i].text = trace.text
+                    map_widget.data[i].name = trace.name
+                    map_widget.data[i].marker = trace.marker
+            map_widget.layout.legend.title.text = target.layout.legend.title.text
+
+    # pattern = rf"(?:^|,\s*){re.escape(abbr)}(?:\s*,|$)"
+    # df = df[df["comb_origins"].fillna("").str.contains(pattern, regex=True)]
 
     @reactive.calc
     def active_df() -> pd.DataFrame:
