@@ -43,6 +43,7 @@ def _pretty_bins(min_val: float, max_val: float, n: int = 5) -> list[float]:
     )
 
 
+# extract polygon co-ordinates
 def _extract_poly_coords(geom) -> tuple[list[float | None], list[float | None]]:
     """get co-ordinate lists separated by None for MultiPolygons."""
     xs: list[float | None] = []
@@ -69,7 +70,7 @@ def build_gb_county_map(
     gb_boundaries: gpd.GeoDataFrame,
     hover_examples_max_lines: int | None = 10,
 ) -> go.Figure:
-    """Plots a clean GB county choropleth map with zero external map tiles."""
+    """Plots GB county choropleth map"""
     merged = gb_boundaries[["name", "geometry"]].merge(
         county_data, left_on="name", right_on="county_name", how="left"
     )
@@ -178,48 +179,47 @@ def build_gb_county_map(
             )
         )
 
-    fig.update_layout(
-        autosize=True,
-        height=560,
-        margin={"l": 0, "r": 0, "t": 10, "b": 0},
-        paper_bgcolor="white",
-        plot_bgcolor="white",
-        dragmode="pan",
-        xaxis={
-            "visible": False,
-            "range": [
-                -7.6,
-                2.2,
-            ],
-            "autorange": False,
-            "constrain": "domain",
-            "fixedrange": False,
-        },
-        yaxis={
-            "visible": False,
-            "range": [49.8, 60.5],
-            "autorange": False,
-            "scaleanchor": "x",
-            "scaleratio": 1.72,
-            "constrain": "domain",
-            "fixedrange": False,
-        },
-        legend={
-            "title": {"text": f"<b>{ptitle}</b>", "font": {"size": 11}},
-            "font": {"size": 10},
-            "x": 0.99,
-            "y": 0.99,
-            "xanchor": "right",
-            "yanchor": "top",
-            "bgcolor": "rgba(255, 255, 255, 0.95)",
-            "bordercolor": "#333333",
-            "borderwidth": 0.8,
-        },
-        hoverlabel={
-            "bgcolor": "white",
-            "font_size": 11,
-            "align": "left",
-        },
-    )
+        fig.update_layout(
+            autosize=True,
+            height=560,
+            margin={"l": 45, "r": 12, "t": 12, "b": 32},
+            paper_bgcolor="white",
+            plot_bgcolor="white",
+            dragmode="pan",
+            xaxis={
+                "visible": False,
+                "range": [-7.6, 2.2],
+                "autorange": False,
+                "automargin": False,
+                "constrain": "domain",
+                "fixedrange": False,
+            },
+            yaxis={
+                "visible": False,
+                "range": [49.8, 60.5],
+                "autorange": False,
+                "automargin": False,
+                "scaleanchor": "x",
+                "scaleratio": 1.72,
+                "constrain": "domain",
+                "fixedrange": False,
+            },
+            legend={
+                "title": {"text": f"<b>{ptitle}</b>", "font": {"size": 11}},
+                "font": {"size": 10},
+                "x": 0.99,
+                "y": 0.99,
+                "xanchor": "right",
+                "yanchor": "top",
+                "bgcolor": "rgba(255, 255, 255, 0.95)",
+                "bordercolor": "#333333",
+                "borderwidth": 0.8,
+            },
+            hoverlabel={
+                "bgcolor": "white",
+                "font_size": 11,
+                "align": "left",
+            },
+        )
 
     return fig

@@ -77,16 +77,16 @@ app_ui = ui.page_fluid(
     ui.tags.style(
         """
         @media (max-width: 767.98px) {
-            /* Fit map comfortably inside a phone viewport so users can scroll past it */
+            /* Fit map inside phone viewport */
             .js-plotly-plot, .plotly, .plot-container {
                 max-height: 460px !important;
             }
-            /* Keep Dataset dropdown and Download button tidy on narrow screens */
+            /* dropdown and Download button on narrow screens */
             .data-controls {
                 flex-wrap: wrap;
                 gap: 0.5rem !important;
             }
-            /* Prevent DataGrid from stretching excessively tall on mobile */
+            /* Prevent DataGrid from stretching */
             .shiny-data-grid {
                 max-height: 380px !important;
             }
@@ -169,6 +169,63 @@ def server(input, output, session):
     def single_origin_map():
         return map_widget
 
+    # @reactive.effect
+    # def _toggle_lat_lon_grid():
+    #     show = bool(input.show_grid())
+
+    #     lon_vals = [-6, -4, -2, 0, 2]
+    #     lon_text = [
+    #         f"{abs(v)}°W" if v < 0 else (f"{v}°E" if v > 0 else "0°") for v in lon_vals
+    #     ]
+    #     lat_vals = [50, 52, 54, 56, 58, 60]
+    #     lat_text = [f"{v}°N" for v in lat_vals]
+
+    #     with map_widget.batch_update():
+    #         map_widget.layout.xaxis.update(
+    #             visible=show,
+    #             showgrid=show,
+    #             gridcolor="#DCE1E5",
+    #             gridwidth=0.7,
+    #             zeroline=False,
+    #             ticks="outside" if show else "",
+    #             ticklen=5,
+    #             tickwidth=0.8,
+    #             tickcolor="#444444",
+    #             showticklabels=show,
+    #             tickvals=lon_vals,
+    #             ticktext=lon_text,
+    #             tickfont={"size": 10, "color": "#444444"},
+    #             showline=show,
+    #             linecolor="#888888",
+    #             linewidth=0.8,
+    #             mirror=True,
+    #         )
+    #         map_widget.layout.yaxis.update(
+    #             visible=show,
+    #             showgrid=show,
+    #             gridcolor="#DCE1E5",
+    #             gridwidth=0.7,
+    #             zeroline=False,
+    #             ticks="outside" if show else "",
+    #             ticklen=5,
+    #             tickwidth=0.8,
+    #             tickcolor="#444444",
+    #             showticklabels=show,
+    #             tickvals=lat_vals,
+    #             ticktext=lat_text,
+    #             tickfont={"size": 10, "color": "#444444"},
+    #             showline=show,
+    #             linecolor="#888888",
+    #             linewidth=0.8,
+    #             mirror=True,
+    #         )
+    #         # Add padding
+    #         map_widget.layout.margin = (
+    #             {"l": 45, "r": 12, "t": 12, "b": 32}
+    #             if show
+    #             else {"l": 0, "r": 0, "t": 10, "b": 0}
+    # )
+
     @reactive.effect
     def _toggle_lat_lon_grid():
         show = bool(input.show_grid())
@@ -183,6 +240,7 @@ def server(input, output, session):
         with map_widget.batch_update():
             map_widget.layout.xaxis.update(
                 visible=show,
+                automargin=False,
                 showgrid=show,
                 gridcolor="#DCE1E5",
                 gridwidth=0.7,
@@ -202,6 +260,7 @@ def server(input, output, session):
             )
             map_widget.layout.yaxis.update(
                 visible=show,
+                automargin=False,
                 showgrid=show,
                 gridcolor="#DCE1E5",
                 gridwidth=0.7,
@@ -218,12 +277,6 @@ def server(input, output, session):
                 linecolor="#888888",
                 linewidth=0.8,
                 mirror=True,
-            )
-            # Add padding
-            map_widget.layout.margin = (
-                {"l": 45, "r": 12, "t": 12, "b": 32}
-                if show
-                else {"l": 0, "r": 0, "t": 10, "b": 0}
             )
 
     @reactive.effect
