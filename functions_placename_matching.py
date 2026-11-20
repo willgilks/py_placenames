@@ -25,42 +25,146 @@ def make_search_terms_list(
     return output_dict
 
 
+# def make_placename_pattern_lookup(
+#     lookup_list: dict[str, dict[str, list[str]]],
+# ) -> pd.DataFrame:
+#     """Compiles position-aware regex patterns per language origin."""
+#     rows = []
+#     for position, origin_dict in lookup_list.items():
+#         for origin, elements in origin_dict.items():
+#             # Sort longest-first so longer elements match before shorter substrings
+#             escaped = [
+#                 re.escape(el) for el in sorted(set(elements), key=len, reverse=True)
+#             ]
+#             if position == "prefix":
+#                 processed = [f"^{el}" for el in escaped]
+#             elif position == "suffix":
+#                 processed = [f"{el}$" for el in escaped]
+#             else:
+#                 processed = escaped
+
+#             rows.append({"origin": origin, "pattern": "|".join(processed)})
+
+#     if not rows:
+#         return pd.DataFrame(columns=["origin", "pattern"])
+
+#     df = pd.DataFrame(rows)
+#     return df.groupby("origin", as_index=False)["pattern"].agg(
+#         lambda s: "|".join(f"(?:{p})" for p in s)
+#     )
+
+
 def make_placename_pattern_lookup(
     lookup_list: dict[str, dict[str, list[str]]],
 ) -> pd.DataFrame:
-    """Compiles position-aware regex patterns per language origin."""
-    rows = []
+    """Compiles position-aware regex patterns per language origin, ordered longest-first."""
+    origin_patterns: dict[str, list[tuple[int, str]]] = {}
+
     for position, origin_dict in lookup_list.items():
         for origin, elements in origin_dict.items():
-            # Sort longest-first so longer elements match before shorter substrings
-            escaped = [
-                re.escape(el) for el in sorted(set(elements), key=len, reverse=True)
-            ]
-            if position == "prefix":
-                processed = [f"^{el}" for el in escaped]
-            elif position == "suffix":
-                processed = [f"{el}$" for el in escaped]
-            else:
-                processed = escaped
+            for el in set(elements):
+                esc = re.escape(el)
+                if position == "prefix":
+                    pat = f"^{esc}"
+                elif position == "suffix":
+                    pat = f"{esc}$"
+                else:
+                    pat = esc
+                origin_patterns.setdefault(origin, []).append((len(el), pat))
 
-            rows.append({"origin": origin, "pattern": "|".join(processed)})
+    rows = []
+    for origin, items in origin_patterns.items():
+        # Sort longest patterns first so regex alternation prefers longer matches
+        sorted_pats = [
+            pat for _, pat in sorted(items, key=lambda x: x[0], reverse=True)
+        ]
+        rows.append(
+            {"origin": origin, "pattern": "|".join(f"(?:{p})" for p in sorted_pats)}
+        )
 
     if not rows:
         return pd.DataFrame(columns=["origin", "pattern"])
 
-    df = pd.DataFrame(rows)
-    return df.groupby("origin", as_index=False)["pattern"].agg(
-        lambda s: "|".join(f"(?:{p})" for p in s)
-    )
+    return pd.DataFrame(rows)
 
 
 # match origin to place name
+# def match_origin_to_placename(
+#     origin_to_placename_input_df: pd.DataFrame,
+#     search_terms_df: pd.DataFrame,
+#     min_term_length: int = 2,
+# ) -> pd.DataFrame:
+#     """Matches place names against compiled origin regex patterns."""
+#     eligible_terms_df = search_terms_df[search_terms_df["term_len"] >= min_term_length]
+
+#     search_terms_list = make_search_terms_list(
+#         input_df=eligible_terms_df,
+#         min_term_length=min_term_length,
+#     )
+
+#     unique_terms = sorted(
+#         eligible_terms_df["term"].dropna().unique(), key=len, reverse=True
+#     )
+#     if not unique_terms:
+#         return pd.DataFrame(
+#             columns=["searchable_placename", "comb_origins", "exact_match_text"]
+#         )
+
+#     all_terms_concat = "|".join(re.escape(t) for t in unique_terms)
+
+#     valid_names = (
+#         origin_to_placename_input_df[["searchable_placename"]]
+#         .dropna()
+#         .drop_duplicates()
+#     )
+
+#     filtered_df = (
+#         valid_names[
+#             valid_names["searchable_placename"].str.contains(
+#                 all_terms_concat, case=False, regex=True, na=False
+#             )
+#         ]
+#         .sort_values("searchable_placename")
+#         .reset_index(drop=True)
+#     )
+
+#     compiled_lookup = make_placename_pattern_lookup(lookup_list=search_terms_list)
+#     compiled_patterns = [
+#         (row["origin"], re.compile(row["pattern"], flags=re.IGNORECASE))
+#         for _, row in compiled_lookup.iterrows()
+#     ]
+
+#     comb_origins_list: list[str] = []
+#     exact_match_list: list[str | float] = []
+
+#     for name in filtered_df["searchable_placename"]:
+#         matched_origins: set[str] = set()
+#         matched_substrings: set[str] = set()
+
+#         for origin, regex in compiled_patterns:
+#             m = regex.search(name)
+#             if m:
+#                 matched_origins.add(origin)
+#                 matched_substrings.add(m.group(0).lower())
+
+#         if not matched_origins:
+#             comb_origins_list.append("Unknown")
+#             exact_match_list.append(np.nan)
+#         else:
+#             comb_origins_list.append(",".join(sorted(matched_origins)))
+#             exact_match_list.append(",".join(sorted(matched_substrings)))
+
+#     filtered_df["comb_origins"] = comb_origins_list
+#     filtered_df["exact_match_text"] = exact_match_list
+#     return filtered_df
+
+
 def match_origin_to_placename(
     origin_to_placename_input_df: pd.DataFrame,
     search_terms_df: pd.DataFrame,
     min_term_length: int = 2,
 ) -> pd.DataFrame:
-    """Matches place names against compiled origin regex patterns."""
+    """Matches place names against compiled origin regex patterns, prioritizing longer enclosing matches."""
     eligible_terms_df = search_terms_df[search_terms_df["term_len"] >= min_term_length]
 
     search_terms_list = make_search_terms_list(
@@ -104,21 +208,32 @@ def match_origin_to_placename(
     exact_match_list: list[str | float] = []
 
     for name in filtered_df["searchable_placename"]:
-        matched_origins: set[str] = set()
-        matched_substrings: set[str] = set()
-
+        # Collect (start, end, origin, matched_substring) for all matches
+        raw_matches: list[tuple[int, int, str, str]] = []
         for origin, regex in compiled_patterns:
-            m = regex.search(name)
-            if m:
-                matched_origins.add(origin)
-                matched_substrings.add(m.group(0).lower())
+            for m in regex.finditer(name):
+                raw_matches.append((m.start(), m.end(), origin, m.group(0).lower()))
 
-        if not matched_origins:
+        if not raw_matches:
             comb_origins_list.append("Unknown")
             exact_match_list.append(np.nan)
-        else:
-            comb_origins_list.append(",".join(sorted(matched_origins)))
-            exact_match_list.append(",".join(sorted(matched_substrings)))
+            continue
+
+        # Keep only matches NOT strictly enclosed inside a longer match's character span
+        kept_matches = [
+            (s1, e1, orig1, txt1)
+            for s1, e1, orig1, txt1 in raw_matches
+            if not any(
+                (s2 <= s1 and e1 <= e2) and ((e2 - s2) > (e1 - s1))
+                for s2, e2, _, _ in raw_matches
+            )
+        ]
+
+        matched_origins = {orig for _, _, orig, _ in kept_matches}
+        matched_substrings = {txt for _, _, _, txt in kept_matches}
+
+        comb_origins_list.append(",".join(sorted(matched_origins)))
+        exact_match_list.append(",".join(sorted(matched_substrings)))
 
     filtered_df["comb_origins"] = comb_origins_list
     filtered_df["exact_match_text"] = exact_match_list

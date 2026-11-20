@@ -84,7 +84,7 @@ def run_pipeline() -> None:
     origin_placename_result = match_origin_to_placename(
         origin_to_placename_input_df=placenames_matched_with_counties,
         search_terms_df=term_ref,
-        min_term_length=2,
+        min_term_length=3,
     )
 
     # Calculate proportions of each origin in each county
@@ -101,6 +101,7 @@ def run_pipeline() -> None:
 
     # write csvs
     print(f"{datetime.now().strftime('%H:%M:%S')} Write csvs")
+
     wiki_table_raw.to_csv(data_dir / "wiki_table_raw.csv", index=False)
     county_plot_dat.to_csv(data_dir / "county_plot_dat.csv", index=False)
     matched_dat.to_csv(data_dir / "matched_and_filtered_dat.csv", index=False)

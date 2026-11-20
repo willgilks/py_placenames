@@ -21,7 +21,6 @@ from constants import (
 
 
 # pull origin strings from wiki
-# def get_wiki_placenames_lookup(wiki_url: str = WIKI_URL) -> pd.DataFrame:
 def pull_wiki_origin_strings(wiki_url: str = WIKI_URL) -> pd.DataFrame:
     """Pulls string and origin info tables from the Wikipedia URL."""
     headers = {"User-Agent": "Mozilla/5.0 (compatible; PlaceNamesApp/1.0)"}
@@ -82,7 +81,7 @@ def expand_optional_parens(terms: pd.Series) -> pd.Series:
     return terms.apply(_expand_cell)
 
 
-# re-structure the wiki table for origins and search strings to make it usable.
+# re-structure wiki table for origins and search strings to make it usable.
 def prepare_wiki_data(
     input_df: pd.DataFrame,
     key_to_languages: dict = KEY_TO_LANGUAGES,
@@ -432,6 +431,7 @@ def assign_counties_from_sf(
     known_towns = place_county_reference[~is_missing].copy()
     missing_towns = place_county_reference[is_missing].copy()
 
+    # if locations are missing an assigned county, then infer it by nearest
     if len(missing_towns) > 0 and len(known_towns) > 0:
         known_sf = gpd.GeoDataFrame(
             known_towns,
