@@ -30,7 +30,22 @@ def run_pipeline() -> None:
 
     # Pull table of origins and text strings from wiki
     print(f"{datetime.now().strftime('%H:%M:%S')} Load wiki data")
-    wiki_table_raw = pull_wiki_origin_strings(wiki_url=WIKI_URL)
+    raw_wiki_path = data_dir / "wiki_table_raw.csv"
+
+    try:
+        wiki_table_raw = pull_wiki_origin_strings(wiki_url=WIKI_URL)
+        wiki_table_raw.to_csv(raw_wiki_path, index=False)
+    except Exception as exc:
+        if raw_wiki_path.exists():
+            print(
+                f"{datetime.now():%H:%M:%S} Warning: Wiki pull failed ({exc}). "
+                f"Using cached {raw_wiki_path}"
+            )
+            wiki_table_raw = pd.read_csv(raw_wiki_path)
+        else:
+            raise RuntimeError(
+                f"Failed to pull Wiki data and no backup file found at {raw_wiki_path}"
+            ) from exc
 
     # Prep wiki reference data for string-origin matching
     wiki_prepped = prepare_wiki_data(
