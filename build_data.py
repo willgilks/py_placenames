@@ -1,4 +1,3 @@
-import os
 from datetime import datetime
 from pathlib import Path
 
@@ -6,7 +5,6 @@ import pandas as pd
 
 from constants import (
     ALLOWED_STRING_POSITIONS,
-    DATA_PATH,
     GB_BOUNDARIES,
     KEY_TO_LANGUAGES,
     LEAD_REMOVE_STRINGS,
@@ -27,14 +25,12 @@ from functions_placename_matching import (
 
 
 def run_pipeline() -> None:
-    out_dir = Path("data")
-    out_dir.mkdir(exist_ok=True)
-
-    print(f"{datetime.now().strftime('%H:%M:%S')} Loading raw data")
+    data_dir = Path("data")
+    data_dir.mkdir(exist_ok=True)
 
     # Pull table of origins and text strings from wiki
+    print(f"{datetime.now().strftime('%H:%M:%S')} Load wiki data")
     wiki_table_raw = pull_wiki_origin_strings(wiki_url=WIKI_URL)
-    wiki_table_raw.to_csv(out_dir / "wiki_table_raw.csv", index=False)
 
     # Prep wiki reference data for string-origin matching
     wiki_prepped = prepare_wiki_data(
@@ -42,15 +38,14 @@ def run_pipeline() -> None:
         key_to_languages=KEY_TO_LANGUAGES,
         allowed_string_positions=ALLOWED_STRING_POSITIONS,
     )
+
     term_ref = wiki_prepped["term_origin_position_dat"]
-    term_ref.to_csv(out_dir / "placename_strings_reference.csv", index=False)
+    term_ref.to_csv(data_dir / "placename_strings_reference.csv", index=False)
 
-    # Load raw place names data
-    data_root = os.getenv("DATA_PATH_ROOT", "")
-    full_data_path = Path(data_root) / DATA_PATH if data_root else Path(DATA_PATH)
-
+    print(f"{datetime.now().strftime('%H:%M:%S')} Load ons place names data")
+    raw_placenames_path = data_dir / "IPN_GB_2024.csv"
     placenames_dat_raw = pd.read_csv(
-        full_data_path, encoding="latin1", low_memory=False
+        raw_placenames_path, encoding="latin1", low_memory=False
     )
 
     # Basic filter and standardisation
@@ -90,12 +85,13 @@ def run_pipeline() -> None:
     matched_dat = post_prep_result_list["matched_and_filtered_dat"]
 
     # write csvs
-    print(f"{datetime.now().strftime('%H:%M:%S')} Writing csvs")
-    county_plot_dat.to_csv(out_dir / "county_plot_dat.csv", index=False)
-    matched_dat.to_csv(out_dir / "matched_and_filtered_dat.csv", index=False)
+    print(f"{datetime.now().strftime('%H:%M:%S')} Write csvs")
+    wiki_table_raw.to_csv(data_dir / "wiki_table_raw.csv", index=False)
+    county_plot_dat.to_csv(data_dir / "county_plot_dat.csv", index=False)
+    matched_dat.to_csv(data_dir / "matched_and_filtered_dat.csv", index=False)
 
     # write county boundaries
-    GB_BOUNDARIES.to_file(out_dir / "gb_boundaries.geojson", driver="GeoJSON")
+    GB_BOUNDARIES.to_file(data_dir / "gb_boundaries.geojson", driver="GeoJSON")
     print(
         f"{datetime.now().strftime('%H:%M:%S')} Pipeline complete! All processed files saved to ./data/"
     )
