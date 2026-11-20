@@ -89,8 +89,8 @@ def run_pipeline() -> None:
     county_plot_dat = post_prep_result_list["county_plot_dat"]
     matched_dat = post_prep_result_list["matched_and_filtered_dat"]
 
-    print(f"{datetime.now().strftime('%H:%M:%S')} Writing csvs")
     # write csvs
+    print(f"{datetime.now().strftime('%H:%M:%S')} Writing csvs")
     county_plot_dat.to_csv(out_dir / "county_plot_dat.csv", index=False)
     matched_dat.to_csv(out_dir / "matched_and_filtered_dat.csv", index=False)
 

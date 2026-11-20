@@ -15,8 +15,8 @@ DATA_DIR = Path("data")
 county_plot_dat = pd.read_csv(DATA_DIR / "county_plot_dat.csv")
 
 placename_strings_reference = pd.read_csv(DATA_DIR / "placename_strings_reference.csv")
-print("Columns:", placename_strings_reference.columns.tolist())
-print("Sample origins:", placename_strings_reference["origin"].dropna().unique()[:10])
+matched_and_filtered_dat = pd.read_csv(DATA_DIR / "matched_and_filtered_dat.csv")
+print("Columns:", matched_and_filtered_dat.columns.tolist())
 
 
 gb_boundaries = gpd.read_file(DATA_DIR / "gb_boundaries.geojson")[
@@ -31,6 +31,7 @@ DEFAULT_ORIGIN = next(iter(ORIGINS), "")
 DOWNLOADABLE_TABLES: dict[str, pd.DataFrame] = {
     "Origins and strings": placename_strings_reference,
     "County level data": county_plot_dat,
+    "Place level data": matched_and_filtered_dat,
 }
 
 
@@ -111,7 +112,6 @@ def server(input, output, session):
     @reactive.calc
     def active_df() -> pd.DataFrame:
         df = DOWNLOADABLE_TABLES[input.selected_table()].copy()
-        df = df.drop(columns=["geometry"], errors="ignore")
 
         if "origin" in df.columns:
             chosen = input.selected_origin() or DEFAULT_ORIGIN
@@ -134,6 +134,21 @@ def server(input, output, session):
                 df = df[abbr_match]
             else:
                 df = df[full_match]
+
+        if "comb_origins" in df.columns:
+            chosen = input.selected_origin() or DEFAULT_ORIGIN
+            abbr = LANGUAGE_TO_KEY.get(chosen)
+
+            abbr_match = (
+                df["comb_origins"]
+                .fillna("")
+                .apply(
+                    lambda cell: (
+                        abbr in [token.strip() for token in str(cell).split(",")]
+                    )
+                )
+            )
+            df = df[abbr_match]
 
         return df.reset_index(drop=True)
 
