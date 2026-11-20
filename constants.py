@@ -209,7 +209,6 @@ COUNTY_BOUNDARIES_TXT = (
     "and filtered for the one with the shortest original place name. "
 )
 
-# EXPLAINER_TEXT = f"{EXPLAINER_TEXT_LEAD}\n\n{WIKI_URL_TEXT}\n\n{ONS_PLACENAMES_URL_TEXT}\n\n{COUNTY_BOUNDARIES_TXT}"
 EXPLAINER_TEXT = (
     EXPLAINER_TEXT_LEAD
     + WIKI_URL_TEXT

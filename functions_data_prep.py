@@ -66,7 +66,7 @@ def expand_optional_parens(terms: pd.Series) -> pd.Series:
                 else:
                     opts.append([p])
 
-            # Match R's expand.grid column-major ordering
+            # expand.grid column-major ordering
             for combo in itertools.product(*reversed(opts)):
                 expanded_all.append("".join(reversed(combo)))
 

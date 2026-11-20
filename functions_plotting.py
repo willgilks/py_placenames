@@ -222,5 +222,4 @@ def build_gb_county_map(
         },
     )
 
-    # return go.FigureWidget(fig)
     return fig
