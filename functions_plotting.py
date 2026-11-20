@@ -179,10 +179,11 @@ def build_gb_county_map(
         )
 
     fig.update_layout(
+        autosize=True,
+        height=560,
         margin={"l": 0, "r": 0, "t": 10, "b": 0},
         paper_bgcolor="white",
         plot_bgcolor="white",
-        height=720,
         dragmode="pan",
         xaxis={
             "visible": False,
@@ -199,9 +200,13 @@ def build_gb_county_map(
             "fixedrange": False,
         },
         legend={
-            "title": {"text": f"<b>{ptitle}</b>"},
-            "x": 0.98,
-            "y": 0.98,
+            # "title": {"text": f"<b>{ptitle}</b>"},
+            "title": {"text": f"<b>{ptitle}</b>", "font": {"size": 11}},
+            "font": {"size": 10},
+            # "x": 0.98,
+            # "y": 0.98,
+            "x": 0.99,
+            "y": 0.99,
             "xanchor": "right",
             "yanchor": "top",
             "bgcolor": "rgba(255, 255, 255, 0.95)",
@@ -210,7 +215,8 @@ def build_gb_county_map(
         },
         hoverlabel={
             "bgcolor": "white",
-            "font_size": 12,
+            # "font_size": 12,
+            "font_size": 11,
             "align": "left",
         },
     )
