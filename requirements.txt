@@ -8,3 +8,5 @@ scipy
 shapely
 shiny
 shinywidgets
+requests
+beautifulsoup4
