@@ -7,36 +7,6 @@ import pandas as pd
 from constants import key_to_languages_table
 
 
-# make initial search patterns, depending on whether string is a prefix or suffix etc.
-def make_placename_pattern_lookup(
-    lookup_list: dict[str, dict[str, list[str]]],
-) -> pd.DataFrame:
-    """Compiles position-aware regex patterns per language origin."""
-    rows = []
-    for position, origin_dict in lookup_list.items():
-        for origin, elements in origin_dict.items():
-            escaped = [re.escape(el) for el in elements]
-            if position == "prefix":
-                processed = [f"^{el}" for el in escaped]
-            elif position == "suffix":
-                processed = [f"{el}$" for el in escaped]
-            else:
-                processed = [f" {el} " for el in escaped]
-
-            rows.append({"origin": origin, "pattern": "|".join(processed)})
-
-    if not rows:
-        return pd.DataFrame(columns=["origin", "pattern"])
-
-    df = pd.DataFrame(rows)
-    compiled = df.groupby("origin", as_index=False)["pattern"].agg(
-        lambda s: "|".join(f" {p} " for p in s)
-    )
-    return compiled
-
-
-# make list of search patterns, filtered by how long the search pattern is.
-# for downstream use.
 def make_search_terms_list(
     input_df: pd.DataFrame,
     min_term_length: int = 2,
@@ -44,7 +14,7 @@ def make_search_terms_list(
     """Builds a nested dictionary {position: {origin: [terms]}} filtered by term length."""
     filtered = input_df[input_df["term_len"] >= min_term_length][
         ["position", "origin", "term"]
-    ]
+    ].dropna()
 
     output_dict: dict[str, dict[str, list[str]]] = {}
     for (position, origin), group in filtered.groupby(
@@ -55,29 +25,65 @@ def make_search_terms_list(
     return output_dict
 
 
-# main function for matching origin to place name based on strings.
+def make_placename_pattern_lookup(
+    lookup_list: dict[str, dict[str, list[str]]],
+) -> pd.DataFrame:
+    """Compiles position-aware regex patterns per language origin."""
+    rows = []
+    for position, origin_dict in lookup_list.items():
+        for origin, elements in origin_dict.items():
+            # Sort longest-first so longer elements match before shorter substrings
+            escaped = [
+                re.escape(el) for el in sorted(set(elements), key=len, reverse=True)
+            ]
+            if position == "prefix":
+                processed = [f"^{el}" for el in escaped]
+            elif position == "suffix":
+                processed = [f"{el}$" for el in escaped]
+            else:
+                processed = escaped
+
+            rows.append({"origin": origin, "pattern": "|".join(processed)})
+
+    if not rows:
+        return pd.DataFrame(columns=["origin", "pattern"])
+
+    df = pd.DataFrame(rows)
+    return df.groupby("origin", as_index=False)["pattern"].agg(
+        lambda s: "|".join(f"(?:{p})" for p in s)
+    )
+
+
+# match origin to place name
 def match_origin_to_placename(
     origin_to_placename_input_df: pd.DataFrame,
     search_terms_df: pd.DataFrame,
     min_term_length: int = 2,
 ) -> pd.DataFrame:
     """Matches place names against compiled origin regex patterns."""
+    eligible_terms_df = search_terms_df[search_terms_df["term_len"] >= min_term_length]
+
     search_terms_list = make_search_terms_list(
-        input_df=search_terms_df,
+        input_df=eligible_terms_df,
         min_term_length=min_term_length,
     )
 
-    unique_terms = sorted(search_terms_df["term"].dropna().unique())
+    unique_terms = sorted(
+        eligible_terms_df["term"].dropna().unique(), key=len, reverse=True
+    )
+    if not unique_terms:
+        return pd.DataFrame(
+            columns=["searchable_placename", "comb_origins", "exact_match_text"]
+        )
+
     all_terms_concat = "|".join(re.escape(t) for t in unique_terms)
 
-    # remove any nonsense names
     valid_names = (
         origin_to_placename_input_df[["searchable_placename"]]
         .dropna()
         .drop_duplicates()
     )
 
-    # keep only place names containing any searchable string
     filtered_df = (
         valid_names[
             valid_names["searchable_placename"].str.contains(
@@ -89,25 +95,23 @@ def match_origin_to_placename(
     )
 
     compiled_lookup = make_placename_pattern_lookup(lookup_list=search_terms_list)
-
-    # Compile regexes once for fast matching across all place names
     compiled_patterns = [
         (row["origin"], re.compile(row["pattern"], flags=re.IGNORECASE))
         for _, row in compiled_lookup.iterrows()
     ]
 
-    comb_origins_list = []
-    exact_match_list = []
+    comb_origins_list: list[str] = []
+    exact_match_list: list[str | float] = []
 
     for name in filtered_df["searchable_placename"]:
-        matched_origins = set()
-        matched_substrings = set()
+        matched_origins: set[str] = set()
+        matched_substrings: set[str] = set()
 
         for origin, regex in compiled_patterns:
             m = regex.search(name)
             if m:
                 matched_origins.add(origin)
-                matched_substrings.add(m.group(0))
+                matched_substrings.add(m.group(0).lower())
 
         if not matched_origins:
             comb_origins_list.append("Unknown")
@@ -129,14 +133,7 @@ def post_prep_matched_names(
 ) -> dict[str, pd.DataFrame]:
     """Summarises origin assignments per place name and aggregates county percentages."""
 
-    # Summarise valid matches per searchable_placename
-    valid_assignments = assignment_result_df[
-        assignment_result_df["comb_origins"].notna()
-        & (assignment_result_df["comb_origins"] != "Unknown")
-    ]
-
-    # helper function for making unique string.
-    def _unique_sorted_origins(series: pd.Series) -> str:
+    def _unique_sorted_tokens(series: pd.Series) -> str:
         tokens = {
             tok.strip()
             for cell in series.dropna()
@@ -145,31 +142,29 @@ def post_prep_matched_names(
         }
         return ",".join(sorted(tokens))
 
-    # aggregate, collapse strings.
+    # Summarise valid matches per searchable_placename
+    valid_assignments = assignment_result_df[
+        assignment_result_df["comb_origins"].notna()
+        & (assignment_result_df["comb_origins"] != "Unknown")
+    ]
+
     initial_sum_df = valid_assignments.groupby(
         "searchable_placename", as_index=False
     ).agg(
-        comb_origins=("comb_origins", _unique_sorted_origins),
-        text_matches=(
-            "exact_match_text",
-            lambda s: ",".join(pd.unique(s.dropna())),
-        ),
+        comb_origins=("comb_origins", _unique_sorted_tokens),
+        text_matches=("exact_match_text", _unique_sorted_tokens),
     )
 
-    # Join place names with origins back to main data
-    origin_placename_matched = placenames_matched_with_counties_df.merge(
+    # Join place names with origins back to main data & deduplicate
+    df = placenames_matched_with_counties_df.merge(
         initial_sum_df, on="searchable_placename", how="left"
     )
-    origin_placename_matched["comb_origins"] = origin_placename_matched[
-        "comb_origins"
-    ].fillna("Unknown")
+    df["comb_origins"] = df["comb_origins"].fillna("Unknown")
 
-    # Filter joined data to reduce duplication
-    df = origin_placename_matched.copy()
-    df["placename_length"] = df["place23nm_repaired"].str.len()
     df = df[~df["place23nm_repaired"].str.contains(",", regex=False, na=False)].copy()
+    df["placename_length"] = df["place23nm_repaired"].str.len()
 
-    # Keep shortest name per placeid, prioritising arbitraily by lat and long, for plotting.
+    # Keep shortest name per placeid, prioritising arbitrarily by lat and long
     min_len_placeid = df.groupby("placeid")["placename_length"].transform("min")
     df = (
         df[df["placename_length"] == min_len_placeid]
@@ -179,65 +174,57 @@ def post_prep_matched_names(
 
     # Keep shortest name per (lat, long)
     min_len_coords = df.groupby(["lat", "long"])["placename_length"].transform("min")
-    df = df[df["placename_length"] == min_len_coords].copy()
+    df = df[df["placename_length"] == min_len_coords]
 
     # Keep first entry per (county_name, searchable_placename) ordered by lat, long
     df = df.sort_values(
         ["county_name", "searchable_placename", "lat", "long"]
     ).drop_duplicates(subset=["county_name", "searchable_placename"], keep="first")
 
-    # remove any place names where origin is unknown. this is purely for plotting etc..
-    # .. and assumes that unknown place names have the same distribution of origins as assigned place names.
-    matched_and_filtered_df = df[df["comb_origins"] != "Unknown"][
-        ["county_name", "comb_origins", "place23nm_mod", "text_matches"]
+    # Filter to known origins for plotting & downloadable place-level table
+    matched_and_filtered_out = df[df["comb_origins"] != "Unknown"][
+        ["place23nm_mod", "county_name", "comb_origins", "text_matches"]
     ].reset_index(drop=True)
-    matched_and_filtered_df["rn"] = range(1, len(matched_and_filtered_df) + 1)
 
-    cols_first = ["place23nm_mod", "county_name", "comb_origins", "text_matches"]
-    remaining_cols = [
-        c for c in matched_and_filtered_df.columns if c not in cols_first + ["rn"]
-    ]
-    matched_and_filtered_out = matched_and_filtered_df[
-        cols_first + remaining_cols
-    ].copy()
-
-    # Explode so there's one row per unique origin, place, and text match
-    exploded = matched_and_filtered_df.copy()
-    exploded["comb_origins"] = exploded["comb_origins"].str.split(",")
-    exploded = exploded.explode("comb_origins")
-    exploded["comb_origins"] = exploded["comb_origins"].str.strip()
+    # Explode so there is one row per unique origin, place, and text match
     exploded = (
-        exploded[exploded["comb_origins"] != ""][
-            ["rn", "county_name", "comb_origins", "place23nm_mod", "text_matches"]
+        matched_and_filtered_out.assign(
+            origin=lambda d: d["comb_origins"].str.split(",")
+        )
+        .explode("origin")
+        .assign(origin=lambda d: d["origin"].str.strip())
+        .query("origin != ''")[
+            ["county_name", "origin", "place23nm_mod", "text_matches"]
         ]
         .drop_duplicates()
-        .rename(columns={"comb_origins": "origin", "text_matches": "text_match"})
+        .rename(columns={"text_matches": "text_match"})
     )
 
-    # County summary weighted by number of origins per place
+    # Weight each place equally across its matched origins
     exploded["n_origins"] = exploded.groupby(
         ["county_name", "place23nm_mod", "text_match"]
     )["origin"].transform("count")
     exploded["place_wt"] = 1.0 / exploded["n_origins"]
 
-    def _top_five_places(series: pd.Series) -> str:
-        top5 = sorted(series.dropna().unique())[:5]
-        return ", ".join(top5)
+    # Build top-n example strings per (county_name, origin, text_match)
+    examples_df = (
+        exploded.groupby(["county_name", "origin", "text_match"], as_index=False)[
+            "place23nm_mod"
+        ]
+        .agg(lambda s: ", ".join(sorted(s.dropna().unique())[:5]))
+        .assign(
+            disp_str=lambda d: d["text_match"].fillna("") + ": " + d["place23nm_mod"]
+        )
+        .groupby(["county_name", "origin"], as_index=False)["disp_str"]
+        .agg(lambda s: ". ".join(sorted(set(s))))
+        .rename(columns={"disp_str": "strings_and_matches"})
+    )
 
-    # get examples of matched places.
-    disp_places_map = exploded.groupby(["county_name", "origin", "text_match"])[
-        "place23nm_mod"
-    ].transform(_top_five_places)
-    exploded["disp_str"] = exploded["text_match"].fillna("") + ": " + disp_places_map
-
-    # count number of places matching each origin in each county
+    # Aggregate exact counts & percentages per (county_name, origin)
     county_summary_df = (
         exploded.groupby(["county_name", "origin"], as_index=False)
-        .agg(
-            n_places=("place_wt", "sum"),
-            strings_and_matches=("disp_str", lambda s: ". ".join(sorted(set(s)))),
-        )
-        .assign(n_places=lambda d: d["n_places"].round(2))
+        .agg(n_places_raw=("place_wt", "sum"))
+        .merge(examples_df, on=["county_name", "origin"], how="left")
     )
 
     county_summary_df["strings_and_matches"] = county_summary_df[
@@ -245,41 +232,47 @@ def post_prep_matched_names(
     ].str.replace(r" [,]", "", regex=True)
 
     county_summary_df["n_county_places"] = (
-        county_summary_df.groupby("county_name")["n_places"]
+        county_summary_df.groupby("county_name")["n_places_raw"]
         .transform("sum")
         .round(0)
         .astype(int)
     )
-
     county_summary_df["pc"] = (
-        100.0 * (county_summary_df["n_places"] / county_summary_df["n_county_places"])
+        100.0
+        * (county_summary_df["n_places_raw"] / county_summary_df["n_county_places"])
     ).round(2)
+    county_summary_df["n_places"] = county_summary_df["n_places_raw"].round(2)
+    county_summary_df = county_summary_df.drop(columns=["n_places_raw"])
 
-    # Expand grid for mapping so missing county-origin pairs show as zero
+    # Expand grid so missing county-origin pairs show as zero
     counties = sorted(county_summary_df["county_name"].dropna().unique())
     origins = sorted(county_summary_df["origin"].dropna().unique())
     grid = pd.DataFrame(
         list(itertools.product(counties, origins)),
         columns=["county_name", "origin"],
     )
-    # combines the counties and origins with the county percentages
+
     county_plot_df = grid.merge(
         county_summary_df, on=["county_name", "origin"], how="left"
     )
-    ## fills county general county-level info to blank rows.
     county_plot_df["n_county_places"] = (
-        county_plot_df.groupby("county_name")["n_county_places"].bfill().ffill()
+        county_plot_df.groupby("county_name")["n_county_places"]
+        .bfill()
+        .ffill()
+        .fillna(0)
+        .astype(int)
     )
 
-    # fill missing with zero.
     num_cols = county_plot_df.select_dtypes(include="number").columns
     county_plot_df[num_cols] = county_plot_df[num_cols].fillna(0)
 
-    county_plot_df = county_plot_df.merge(lang_lookup_df, on="origin", how="left")
-    county_plot_df["origin"] = county_plot_df["full_origin"]
-    county_plot_df = county_plot_df.drop(columns=["full_origin"])
+    county_plot_df = (
+        county_plot_df.merge(lang_lookup_df, on="origin", how="left")
+        .assign(origin=lambda d: d["full_origin"])
+        .drop(columns=["full_origin"])
+    )
 
     return {
         "matched_and_filtered_dat": matched_and_filtered_out,
         "county_plot_dat": county_plot_df,
-    }  # eof
+    }
