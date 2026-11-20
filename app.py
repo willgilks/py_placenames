@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 import geopandas as gpd
@@ -11,14 +12,11 @@ from functions_plotting import build_gb_county_map
 
 LANGUAGE_TO_KEY = {lang: code for code, lang in KEY_TO_LANGUAGES.items()}
 
-# Load base app data
+# LOAD BASE DATA ####
 DATA_DIR = Path("data")
 county_plot_dat = pd.read_csv(DATA_DIR / "county_plot_dat.csv")
-
 placename_strings_reference = pd.read_csv(DATA_DIR / "placename_strings_reference.csv")
 matched_and_filtered_dat = pd.read_csv(DATA_DIR / "matched_and_filtered_dat.csv")
-print("Columns:", matched_and_filtered_dat.columns.tolist())
-
 
 gb_boundaries = gpd.read_file(DATA_DIR / "gb_boundaries.geojson")[
     ["name", "geometry"]
@@ -35,9 +33,8 @@ DOWNLOADABLE_TABLES: dict[str, pd.DataFrame] = {
     "Place level data": matched_and_filtered_dat,
 }
 
-
-# Pre-build all origin figures once when the app starts (near top of app.py)
-PREBUILT_MAPS = {
+# Pre-build all origin figures once at startup
+PREBUILT_MAPS: dict[str, go.Figure] = {
     origin: build_gb_county_map(
         county_data=county_plot_dat[
             county_plot_dat["origin"] == origin
@@ -49,6 +46,29 @@ PREBUILT_MAPS = {
     for origin in ORIGINS
 }
 
+
+def _match_token_column(series: pd.Series, abbr: str) -> pd.Series:
+    """Vectorized exact-token match on comma-separated abbreviation strings."""
+    pattern = rf"(?:^|,\s*){re.escape(abbr)}(?:\s*,|$)"
+    return series.fillna("").str.contains(pattern, regex=True)
+
+
+def _filter_table_by_origin(df: pd.DataFrame, chosen: str) -> pd.DataFrame:
+    """Filters a DataFrame by full origin name or comma-separated origin codes."""
+    abbr = LANGUAGE_TO_KEY.get(chosen)
+
+    if "origin" in df.columns:
+        full_match = df["origin"] == chosen
+        if full_match.any() or not abbr:
+            return df[full_match]
+        return df[_match_token_column(df["origin"], abbr)]
+
+    if "comb_origins" in df.columns and abbr:
+        return df[_match_token_column(df["comb_origins"], abbr)]
+
+    return df
+
+
 # DEFINE UI ####
 app_ui = ui.page_sidebar(
     ui.sidebar(
@@ -59,7 +79,7 @@ app_ui = ui.page_sidebar(
             selected=DEFAULT_ORIGIN,
         ),
         ui.hr(),
-        ui.p(
+        ui.div(
             ui.markdown(SIDEBAR_TEXT),
             class_="text-muted small",
         ),
@@ -103,28 +123,15 @@ app_ui = ui.page_sidebar(
 
 # DEFINE SERVER ####
 def server(input, output, session):
-
     map_widget = go.FigureWidget(PREBUILT_MAPS[DEFAULT_ORIGIN])
 
     @reactive.calc
-    def filtered_origin_df() -> pd.DataFrame:
-        chosen = input.selected_origin() or DEFAULT_ORIGIN
-        return county_plot_dat[county_plot_dat["origin"] == chosen].drop_duplicates()
+    def chosen_origin() -> str:
+        return input.selected_origin() or DEFAULT_ORIGIN
 
     @render.text
     def single_map_title() -> str:
-        chosen = input.selected_origin() or DEFAULT_ORIGIN
-        return f"Percentage of Place Names with {chosen} Origin"
-
-    # @render_widget
-    # def single_origin_map():
-    #     chosen = input.selected_origin() or DEFAULT_ORIGIN
-    #     return build_gb_county_map(
-    #         county_data=filtered_origin_df(),
-    #         ptitle=chosen,
-    #         gb_boundaries=gb_boundaries,
-    #         hover_examples_max_lines=5,
-    #     )
+        return f"Percentage of Place Names with {chosen_origin()} Origin"
 
     @render_widget
     def single_origin_map():
@@ -132,63 +139,17 @@ def server(input, output, session):
 
     @reactive.effect
     def _update_map():
-        chosen = input.selected_origin() or DEFAULT_ORIGIN
-        target = PREBUILT_MAPS[chosen]
-
+        target = PREBUILT_MAPS[chosen_origin()]
         with map_widget.batch_update():
-            for i, trace in enumerate(target.data):
-                if i < len(map_widget.data):
-                    map_widget.data[i].fillcolor = trace.fillcolor
-                    map_widget.data[i].text = trace.text
-                    map_widget.data[i].name = trace.name
-                    map_widget.data[i].marker = trace.marker
-            map_widget.layout.legend.title.text = target.layout.legend.title.text
-
-    # pattern = rf"(?:^|,\s*){re.escape(abbr)}(?:\s*,|$)"
-    # df = df[df["comb_origins"].fillna("").str.contains(pattern, regex=True)]
+            map_widget.data = []
+            map_widget.add_traces(target.data)
+            map_widget.layout.legend = target.layout.legend
 
     @reactive.calc
     def active_df() -> pd.DataFrame:
-        df = DOWNLOADABLE_TABLES[input.selected_table()].copy()
-
-        if "origin" in df.columns:
-            chosen = input.selected_origin() or DEFAULT_ORIGIN
-            abbr = LANGUAGE_TO_KEY.get(chosen)
-
-            # Exact full-name match (for county-level table)
-            full_match = df["origin"] == chosen
-
-            # Exact token match on comma-separated codes (for origins & strings table)
-            if abbr and not full_match.any():
-                abbr_match = (
-                    df["origin"]
-                    .fillna("")
-                    .apply(
-                        lambda cell: (
-                            abbr in [token.strip() for token in str(cell).split(",")]
-                        )
-                    )
-                )
-                df = df[abbr_match]
-            else:
-                df = df[full_match]
-
-        if "comb_origins" in df.columns:
-            chosen = input.selected_origin() or DEFAULT_ORIGIN
-            abbr = LANGUAGE_TO_KEY.get(chosen)
-
-            abbr_match = (
-                df["comb_origins"]
-                .fillna("")
-                .apply(
-                    lambda cell: (
-                        abbr in [token.strip() for token in str(cell).split(",")]
-                    )
-                )
-            )
-            df = df[abbr_match]
-
-        return df.reset_index(drop=True)
+        raw_df = DOWNLOADABLE_TABLES[input.selected_table()]
+        filtered = _filter_table_by_origin(raw_df, chosen_origin())
+        return filtered.reset_index(drop=True)
 
     @render.data_frame
     def active_data_table():
