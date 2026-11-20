@@ -87,21 +87,41 @@ app_ui = ui.page_sidebar(
             class_="text-muted small",
         ),
         width=260,
+        open="open",  # Keeps Origin selector visible at top on mobile screens
+    ),
+    ui.tags.style(
+        """
+        @media (max-width: 767.98px) {
+            /* Fit map comfortably inside a phone viewport so users can scroll past it */
+            .js-plotly-plot, .plotly, .plot-container {
+                max-height: 460px !important;
+            }
+            /* Keep Dataset dropdown and Download button tidy on narrow screens */
+            .data-controls {
+                flex-wrap: wrap;
+                gap: 0.5rem !important;
+            }
+            /* Prevent DataGrid from stretching excessively tall on mobile */
+            .shiny-data-grid {
+                max-height: 380px !important;
+            }
+        }
+        """
     ),
     ui.layout_columns(
-        # Middle column: Map
+        # Middle / Top-on-mobile: Map
         ui.card(
             ui.card_header(ui.output_text("single_map_title")),
             output_widget("single_origin_map"),
             full_screen=True,
         ),
-        # Right column: Data selector, Download button & Table
+        # Right / Second-on-mobile: Data table
         ui.card(
             ui.card_header("Data"),
             ui.div(
                 ui.input_select(
                     "selected_table",
-                    "Table",
+                    "Dataset",
                     choices=list(DOWNLOADABLE_TABLES.keys()),
                 ),
                 ui.download_button(
@@ -109,14 +129,14 @@ app_ui = ui.page_sidebar(
                     "Download CSV",
                     class_="btn-outline-primary mb-3",
                 ),
-                class_="d-flex align-items-end gap-3 mb-2",
+                class_="d-flex align-items-end gap-3 mb-2 data-controls",
             ),
             ui.output_data_frame("active_data_table"),
             full_screen=True,
         ),
-        col_widths=(6, 6),
+        col_widths={"sm": (12, 12), "lg": (6, 6)},
     ),
-    # Bottom section: About text
+    # Bottom: Explainer text
     ui.card(
         ui.card_header("About"),
         ui.div(
