@@ -18,6 +18,9 @@ ONS_PLACENAMES_URL = "https://open-geography-portalx-ons.hub.arcgis.com/datasets
 ALLOWED_STRING_POSITIONS = ["interfix", "prefix", "standalone", "suffix"]
 
 # ui end
+
+SIDEBAR_TEXT = ""
+
 EXPLAINER_TEXT_LEAD = (
     "Place origin is determined by whether the place name contains a certain prefix or suffix from a particular origin.\n\n"
     "Some prefixes can be from multiple origins. "
@@ -43,6 +46,7 @@ COUNTY_BOUNDARIES_TXT = (
 )
 
 EXPLAINER_TEXT = f"{EXPLAINER_TEXT_LEAD} {WIKI_URL_TEXT} {ONS_PLACENAMES_URL_TEXT} {COUNTY_BOUNDARIES_TXT} "
+
 
 # full origin names and abbreviations
 KEY_TO_LANGUAGES = {
