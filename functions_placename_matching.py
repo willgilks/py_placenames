@@ -135,7 +135,7 @@ def post_prep_matched_names(
         & (assignment_result_df["comb_origins"] != "Unknown")
     ]
 
-    # helper function
+    # helper function for making unique string.
     def _unique_sorted_origins(series: pd.Series) -> str:
         tokens = {
             tok.strip()
@@ -192,6 +192,14 @@ def post_prep_matched_names(
         ["county_name", "comb_origins", "place23nm_mod", "text_matches"]
     ].reset_index(drop=True)
     matched_and_filtered_df["rn"] = range(1, len(matched_and_filtered_df) + 1)
+
+    cols_first = ["place23nm_mod", "county_name", "comb_origins", "text_matches"]
+    remaining_cols = [
+        c for c in matched_and_filtered_df.columns if c not in cols_first + ["rn"]
+    ]
+    matched_and_filtered_out = matched_and_filtered_df[
+        cols_first + remaining_cols
+    ].copy()
 
     # Explode so there's one row per unique origin, place, and text match
     exploded = matched_and_filtered_df.copy()
@@ -272,6 +280,6 @@ def post_prep_matched_names(
     county_plot_df = county_plot_df.drop(columns=["full_origin"])
 
     return {
-        "matched_and_filtered_dat": matched_and_filtered_df,
+        "matched_and_filtered_dat": matched_and_filtered_out,
         "county_plot_dat": county_plot_df,
     }  # eof
