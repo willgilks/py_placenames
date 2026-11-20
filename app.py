@@ -73,22 +73,82 @@ def _filter_table_by_origin(df: pd.DataFrame, chosen: str) -> pd.DataFrame:
 
 
 # DEFINE UI ####
-app_ui = ui.page_sidebar(
-    ui.sidebar(
-        ui.input_select(
-            "selected_origin",
-            "Origin",
-            choices=ORIGINS,
-            selected=DEFAULT_ORIGIN,
-        ),
-        ui.hr(),
-        ui.div(
-            ui.markdown(SIDEBAR_TEXT),
-            class_="text-muted small",
-        ),
-        width=260,
-        open="open",  # Keeps Origin selector visible at top on mobile screens
-    ),
+# app_ui = ui.page_sidebar(
+#     ui.sidebar(
+#         ui.input_select(
+#             "selected_origin",
+#             "Origin",
+#             choices=ORIGINS,
+#             selected=DEFAULT_ORIGIN,
+#         ),
+#         ui.hr(),
+#         ui.div(
+#             ui.markdown(SIDEBAR_TEXT),
+#             class_="text-muted small",
+#         ),
+#         width=260,
+#         open="desktop",  # Open on desktop, collapsible top drawer on mobile
+#     ),
+#     ui.tags.style(
+#         """
+#         @media (max-width: 767.98px) {
+#             /* Fit map comfortably inside a phone viewport so users can scroll past it */
+#             .js-plotly-plot, .plotly, .plot-container {
+#                 max-height: 460px !important;
+#             }
+#             /* Keep Dataset dropdown and Download button tidy on narrow screens */
+#             .data-controls {
+#                 flex-wrap: wrap;
+#                 gap: 0.5rem !important;
+#             }
+#             /* Prevent DataGrid from stretching excessively tall on mobile */
+#             .shiny-data-grid {
+#                 max-height: 380px !important;
+#             }
+#         }
+#         """
+#     ),
+#     ui.layout_columns(
+#         # Middle / Top-on-mobile: Map
+#         ui.card(
+#             ui.card_header(ui.output_text("single_map_title")),
+#             output_widget("single_origin_map"),
+#             full_screen=True,
+#         ),
+#         # Right / Second-on-mobile: Data table
+#         ui.card(
+#             ui.card_header("Data"),
+#             ui.div(
+#                 ui.input_select(
+#                     "selected_table",
+#                     "Dataset",
+#                     choices=list(DOWNLOADABLE_TABLES.keys()),
+#                 ),
+#                 ui.download_button(
+#                     "download_table_csv",
+#                     "Download CSV",
+#                     class_="btn-outline-primary mb-3",
+#                 ),
+#                 class_="d-flex align-items-end gap-3 mb-2 data-controls",
+#             ),
+#             ui.output_data_frame("active_data_table"),
+#             full_screen=True,
+#         ),
+#         col_widths=(6, 6),
+#     ),
+#     # Bottom: Explainer text
+#     ui.card(
+#         ui.card_header("About"),
+#         ui.div(
+#             ui.markdown(EXPLAINER_TEXT),
+#             class_="small",
+#         ),
+#     ),
+#     title="British Place Name Origins",
+# )
+
+
+app_ui = ui.page_fluid(
     ui.tags.style(
         """
         @media (max-width: 767.98px) {
@@ -108,14 +168,34 @@ app_ui = ui.page_sidebar(
         }
         """
     ),
+    ui.h3("British Place Name Origins", class_="my-3"),
     ui.layout_columns(
-        # Middle / Top-on-mobile: Map
+        # Left (Desktop) / Top (Mobile): Origin selector
+        ui.card(
+            ui.input_select(
+                "selected_origin",
+                "Origin",
+                choices=ORIGINS,
+                selected=DEFAULT_ORIGIN,
+            ),
+            ui.input_switch(
+                "show_grid",
+                "Grid",
+                value=False,
+            ),
+            ui.hr(),
+            ui.div(
+                ui.markdown(SIDEBAR_TEXT),
+                class_="text-muted small",
+            ),
+        ),
+        # Middle (Desktop) / Second (Mobile): Map
         ui.card(
             ui.card_header(ui.output_text("single_map_title")),
             output_widget("single_origin_map"),
             full_screen=True,
         ),
-        # Right / Second-on-mobile: Data table
+        # Right (Desktop) / Third (Mobile): Data table
         ui.card(
             ui.card_header("Data"),
             ui.div(
@@ -134,7 +214,7 @@ app_ui = ui.page_sidebar(
             ui.output_data_frame("active_data_table"),
             full_screen=True,
         ),
-        col_widths={"sm": (12, 12), "lg": (6, 6)},
+        col_widths=(2, 5, 5),
     ),
     # Bottom: Explainer text
     ui.card(
@@ -143,8 +223,8 @@ app_ui = ui.page_sidebar(
             ui.markdown(EXPLAINER_TEXT),
             class_="small",
         ),
+        class_="mt-3",
     ),
-    title="British Place Name Origins",
 )
 
 
@@ -165,6 +245,63 @@ def server(input, output, session):
         return map_widget
 
     @reactive.effect
+    def _toggle_lat_lon_grid():
+        show = bool(input.show_grid())
+
+        lon_vals = [-6, -4, -2, 0, 2]
+        lon_text = [
+            f"{abs(v)}°W" if v < 0 else (f"{v}°E" if v > 0 else "0°") for v in lon_vals
+        ]
+        lat_vals = [50, 52, 54, 56, 58, 60]
+        lat_text = [f"{v}°N" for v in lat_vals]
+
+        with map_widget.batch_update():
+            map_widget.layout.xaxis.update(
+                visible=show,
+                showgrid=show,
+                gridcolor="#DCE1E5",
+                gridwidth=0.7,
+                zeroline=False,
+                ticks="outside" if show else "",
+                ticklen=5,
+                tickwidth=0.8,
+                tickcolor="#444444",
+                showticklabels=show,
+                tickvals=lon_vals,
+                ticktext=lon_text,
+                tickfont={"size": 10, "color": "#444444"},
+                showline=show,
+                linecolor="#888888",
+                linewidth=0.8,
+                mirror=True,
+            )
+            map_widget.layout.yaxis.update(
+                visible=show,
+                showgrid=show,
+                gridcolor="#DCE1E5",
+                gridwidth=0.7,
+                zeroline=False,
+                ticks="outside" if show else "",
+                ticklen=5,
+                tickwidth=0.8,
+                tickcolor="#444444",
+                showticklabels=show,
+                tickvals=lat_vals,
+                ticktext=lat_text,
+                tickfont={"size": 10, "color": "#444444"},
+                showline=show,
+                linecolor="#888888",
+                linewidth=0.8,
+                mirror=True,
+            )
+            # Add padding
+            map_widget.layout.margin = (
+                {"l": 45, "r": 12, "t": 12, "b": 32}
+                if show
+                else {"l": 0, "r": 0, "t": 10, "b": 0}
+            )
+
+    @reactive.effect
     def _update_map():
         target = get_origin_map(chosen_origin())
 
@@ -180,7 +317,7 @@ def server(input, output, session):
                     cur_trace.marker.color = new_trace.marker.color
                     cur_trace.visible = True
 
-            # Hide any extra legend slots if target has fewer bins than initial map
+            # Hide extra legend slots if target has fewer bins than initial map
             for extra_trace in map_widget.data[len(target.data) :]:
                 extra_trace.visible = False
 
