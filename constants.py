@@ -13,7 +13,36 @@ WIKI_URL = (
     "https://en.wikipedia.org/wiki/List_of_elements_in_place_names_in_the_British_Isles"
 )
 
+ONS_PLACENAMES_URL = "https://open-geography-portalx-ons.hub.arcgis.com/datasets/ons::index-of-place-names-july-2024-in-gb/about"
+
 ALLOWED_STRING_POSITIONS = ["interfix", "prefix", "standalone", "suffix"]
+
+# ui end
+EXPLAINER_TEXT_LEAD = (
+    "Place origin is determined by whether the place name contains a certain prefix or suffix from a particular origin.\n\n"
+    "Some prefixes can be from multiple origins. "
+    "Where this occurs, the count for that word is divided by the number of origins that it can represent.\n\n"
+)
+
+WIKI_URL_TEXT = (
+    "Origins and place name word parts from Wikipedia (various references) "
+    + WIKI_URL
+    + "\n\n"
+)
+
+NATURAL_EARTH_URL = "https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/"
+
+ONS_PLACENAMES_URL_TEXT = (
+    "Place names data and locations from Office of National Statistics (ONS) "
+    + ONS_PLACENAMES_URL
+    + "\n\n"
+)
+
+COUNTY_BOUNDARIES_TXT = (
+    "County boundaries data from Natural Earth " + NATURAL_EARTH_URL + "\n\n"
+)
+
+EXPLAINER_TEXT = f"{EXPLAINER_TEXT_LEAD} {WIKI_URL_TEXT} {ONS_PLACENAMES_URL_TEXT} {COUNTY_BOUNDARIES_TXT} "
 
 # full origin names and abbreviations
 KEY_TO_LANGUAGES = {

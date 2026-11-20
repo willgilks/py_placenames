@@ -5,6 +5,7 @@ import pandas as pd
 from shiny import App, reactive, render, ui
 from shinywidgets import output_widget, render_widget
 
+from constants import EXPLAINER_TEXT
 from functions_plotting import build_gb_county_map
 
 # Load base app data
@@ -28,14 +29,14 @@ app_ui = ui.page_sidebar(
             choices=ORIGINS,
             selected=DEFAULT_ORIGIN,
         ),
-        ui.input_switch(
-            "fix_scale",
-            "Fix scale (0–100%)",
-            value=False,
-        ),
+        # ui.input_switch(
+        #     "fix_scale",
+        #     "Fix scale (0–100%)",
+        #     value=False,
+        # ),
         ui.hr(),
         ui.p(
-            "<explainer text here>",
+            ui.markdown(EXPLAINER_TEXT),
             class_="text-muted small",
         ),
     ),
@@ -44,7 +45,7 @@ app_ui = ui.page_sidebar(
         output_widget("single_origin_map"),
         full_screen=True,
     ),
-    title="<title here>",
+    title="British Place Name Origins",
 )
 
 
@@ -72,7 +73,7 @@ def server(input, output, session):
             county_data=filtered_origin_df(),
             ptitle=chosen,
             gb_boundaries=gb_boundaries,
-            fix_percent_scale=input.fix_scale(),
+            hover_examples_max_lines=5,
         )
 
 

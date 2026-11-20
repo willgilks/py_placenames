@@ -67,7 +67,7 @@ def build_gb_county_map(
     county_data: pd.DataFrame,
     ptitle: str,
     gb_boundaries: gpd.GeoDataFrame,
-    fix_percent_scale: bool = False,
+    hover_examples_max_lines: int | None = 10,
 ) -> go.Figure:
     """Plots a clean GB county choropleth map with zero external map tiles."""
     merged = gb_boundaries[["name", "geometry"]].merge(
@@ -79,11 +79,7 @@ def build_gb_county_map(
     max_domain_val = float(domain_vals.max()) if len(domain_vals) > 0 else 0.0
     min_domain_val = float(domain_vals.min()) if len(domain_vals) > 0 else 0.0
 
-    if fix_percent_scale:
-        max_upper = max(100.0, max_domain_val)
-        map_bins = list(np.linspace(0.0, max_upper, 6))
-    else:
-        map_bins = _pretty_bins(min_domain_val, max_domain_val, n=5)
+    map_bins = _pretty_bins(min_domain_val, max_domain_val, n=5)
 
     n_bins = max(len(map_bins) - 1, 1)
     cmap = plt.get_cmap("YlOrRd", n_bins)
@@ -119,11 +115,27 @@ def build_gb_county_map(
         header = (
             f"<b>{row['name']}</b><br>{round(pc_val)}% {ptitle} ({n_places}/{n_county})"
         )
+
         raw_matches = row.get("strings_and_matches")
+
         if pd.notna(raw_matches) and str(raw_matches).strip() != "":
-            matches_lines = "<br>".join(
+            all_parts = [
                 part.strip() for part in str(raw_matches).split(".") if part.strip()
-            )
+            ]
+
+            if pd.notna(hover_examples_max_lines):
+                max_lines = int(hover_examples_max_lines)
+
+            else:
+                max_lines = 10
+
+            if len(all_parts) > max_lines:
+                shown_parts = all_parts[:max_lines]
+                shown_parts.append(f"<i>... and {len(all_parts) - max_lines} more</i>")
+            else:
+                shown_parts = all_parts
+
+            matches_lines = "<br>".join(shown_parts)
             hover_text = f"{header}<br><br>{matches_lines}"
         else:
             hover_text = header
