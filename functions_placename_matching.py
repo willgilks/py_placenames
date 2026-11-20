@@ -128,7 +128,6 @@ def post_prep_matched_names(
     lang_lookup_df: pd.DataFrame = key_to_languages_table,
 ) -> dict[str, pd.DataFrame]:
     """Summarises origin assignments per place name and aggregates county percentages."""
-    print("running post_prep_matched_names")
 
     # Summarise valid matches per searchable_placename
     valid_assignments = assignment_result_df[
@@ -210,18 +209,26 @@ def post_prep_matched_names(
     exploded["disp_str"] = exploded["text_match"].fillna("") + ": " + disp_places_map
 
     # count number of places matching each origin in each county
-    county_summary_df = exploded.groupby(["county_name", "origin"], as_index=False).agg(
-        n_places=("place_wt", "sum"),
-        strings_and_matches=("disp_str", lambda s: ". ".join(sorted(set(s)))),
+    county_summary_df = (
+        exploded.groupby(["county_name", "origin"], as_index=False)
+        .agg(
+            n_places=("place_wt", "sum"),
+            strings_and_matches=("disp_str", lambda s: ". ".join(sorted(set(s)))),
+        )
+        .assign(n_places=lambda d: d["n_places"].round(2))
     )
+
     county_summary_df["strings_and_matches"] = county_summary_df[
         "strings_and_matches"
     ].str.replace(r" [,]", "", regex=True)
 
-    # calculate percentage of each origin in each county
-    county_summary_df["n_county_places"] = county_summary_df.groupby("county_name")[
-        "n_places"
-    ].transform("sum")
+    county_summary_df["n_county_places"] = (
+        county_summary_df.groupby("county_name")["n_places"]
+        .transform("sum")
+        .round(0)
+        .astype(int)
+    )
+
     county_summary_df["pc"] = (
         100.0 * (county_summary_df["n_places"] / county_summary_df["n_county_places"])
     ).round(2)

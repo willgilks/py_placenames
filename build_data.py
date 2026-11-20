@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -29,6 +30,8 @@ def run_pipeline() -> None:
     out_dir = Path("data")
     out_dir.mkdir(exist_ok=True)
 
+    print(f"{datetime.now().strftime('%H:%M:%S')} Loading raw data")
+
     # Pull table of origins and text strings from wiki
     wiki_table_raw = pull_wiki_origin_strings(wiki_url=WIKI_URL)
     wiki_table_raw.to_csv(out_dir / "wiki_table_raw.csv", index=False)
@@ -51,6 +54,7 @@ def run_pipeline() -> None:
     )
 
     # Basic filter and standardisation
+    print(f"{datetime.now().strftime('%H:%M:%S')} Basic filter and standardisation")
     placenames_initial_clean = clean_placenames_data(
         input_df=placenames_dat_raw,
         place_types=PLACE_TYPES,
@@ -59,12 +63,14 @@ def run_pipeline() -> None:
     )
 
     # Assign counties to places based on their lat and long
+    print(f"{datetime.now().strftime('%H:%M:%S')} Assign counties ")
     placenames_matched_with_counties = assign_counties_from_sf(
         input_df=placenames_initial_clean,
         gb_boundaries=GB_BOUNDARIES,
     )
 
     # Assign origins to place names based on partial string matching
+    print(f"{datetime.now().strftime('%H:%M:%S')} Assign origins")
     origin_placename_result = match_origin_to_placename(
         origin_to_placename_input_df=placenames_matched_with_counties,
         search_terms_df=term_ref,
@@ -72,22 +78,27 @@ def run_pipeline() -> None:
     )
 
     # Calculate proportions of each origin in each county
+    print(f"{datetime.now().strftime('%H:%M:%S')} Calculate country proportions")
     post_prep_result_list = post_prep_matched_names(
         assignment_result_df=origin_placename_result,
         placenames_matched_with_counties_df=placenames_matched_with_counties,
     )
 
     # make plot data
+    print(f"{datetime.now().strftime('%H:%M:%S')} Making plot summary data")
     county_plot_dat = post_prep_result_list["county_plot_dat"]
     matched_dat = post_prep_result_list["matched_and_filtered_dat"]
 
+    print(f"{datetime.now().strftime('%H:%M:%S')} Writing csvs")
     # write csvs
     county_plot_dat.to_csv(out_dir / "county_plot_dat.csv", index=False)
     matched_dat.to_csv(out_dir / "matched_and_filtered_dat.csv", index=False)
 
     # write county boundaries
     GB_BOUNDARIES.to_file(out_dir / "gb_boundaries.geojson", driver="GeoJSON")
-    print("Pipeline complete! All processed files saved to ./data/")
+    print(
+        f"{datetime.now().strftime('%H:%M:%S')} Pipeline complete! All processed files saved to ./data/"
+    )
 
 
 # execute
