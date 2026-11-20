@@ -73,81 +73,6 @@ def _filter_table_by_origin(df: pd.DataFrame, chosen: str) -> pd.DataFrame:
 
 
 # DEFINE UI ####
-# app_ui = ui.page_sidebar(
-#     ui.sidebar(
-#         ui.input_select(
-#             "selected_origin",
-#             "Origin",
-#             choices=ORIGINS,
-#             selected=DEFAULT_ORIGIN,
-#         ),
-#         ui.hr(),
-#         ui.div(
-#             ui.markdown(SIDEBAR_TEXT),
-#             class_="text-muted small",
-#         ),
-#         width=260,
-#         open="desktop",  # Open on desktop, collapsible top drawer on mobile
-#     ),
-#     ui.tags.style(
-#         """
-#         @media (max-width: 767.98px) {
-#             /* Fit map comfortably inside a phone viewport so users can scroll past it */
-#             .js-plotly-plot, .plotly, .plot-container {
-#                 max-height: 460px !important;
-#             }
-#             /* Keep Dataset dropdown and Download button tidy on narrow screens */
-#             .data-controls {
-#                 flex-wrap: wrap;
-#                 gap: 0.5rem !important;
-#             }
-#             /* Prevent DataGrid from stretching excessively tall on mobile */
-#             .shiny-data-grid {
-#                 max-height: 380px !important;
-#             }
-#         }
-#         """
-#     ),
-#     ui.layout_columns(
-#         # Middle / Top-on-mobile: Map
-#         ui.card(
-#             ui.card_header(ui.output_text("single_map_title")),
-#             output_widget("single_origin_map"),
-#             full_screen=True,
-#         ),
-#         # Right / Second-on-mobile: Data table
-#         ui.card(
-#             ui.card_header("Data"),
-#             ui.div(
-#                 ui.input_select(
-#                     "selected_table",
-#                     "Dataset",
-#                     choices=list(DOWNLOADABLE_TABLES.keys()),
-#                 ),
-#                 ui.download_button(
-#                     "download_table_csv",
-#                     "Download CSV",
-#                     class_="btn-outline-primary mb-3",
-#                 ),
-#                 class_="d-flex align-items-end gap-3 mb-2 data-controls",
-#             ),
-#             ui.output_data_frame("active_data_table"),
-#             full_screen=True,
-#         ),
-#         col_widths=(6, 6),
-#     ),
-#     # Bottom: Explainer text
-#     ui.card(
-#         ui.card_header("About"),
-#         ui.div(
-#             ui.markdown(EXPLAINER_TEXT),
-#             class_="small",
-#         ),
-#     ),
-#     title="British Place Name Origins",
-# )
-
-
 app_ui = ui.page_fluid(
     ui.tags.style(
         """
@@ -170,7 +95,7 @@ app_ui = ui.page_fluid(
     ),
     ui.h3("British Place Name Origins", class_="my-3"),
     ui.layout_columns(
-        # Left (Desktop) / Top (Mobile): Origin selector
+        # Selector
         ui.card(
             ui.input_select(
                 "selected_origin",
@@ -189,13 +114,13 @@ app_ui = ui.page_fluid(
                 class_="text-muted small",
             ),
         ),
-        # Middle (Desktop) / Second (Mobile): Map
+        # Map
         ui.card(
             ui.card_header(ui.output_text("single_map_title")),
             output_widget("single_origin_map"),
             full_screen=True,
         ),
-        # Right (Desktop) / Third (Mobile): Data table
+        # Data table
         ui.card(
             ui.card_header("Data"),
             ui.div(
@@ -216,7 +141,7 @@ app_ui = ui.page_fluid(
         ),
         col_widths=(2, 5, 5),
     ),
-    # Bottom: Explainer text
+    # About text
     ui.card(
         ui.card_header("About"),
         ui.div(
