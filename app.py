@@ -1,4 +1,3 @@
-import io
 from pathlib import Path
 
 import geopandas as gpd
@@ -6,14 +5,18 @@ import pandas as pd
 from shiny import App, reactive, render, ui
 from shinywidgets import output_widget, render_widget
 
-from constants import EXPLAINER_TEXT, SIDEBAR_TEXT
+from constants import EXPLAINER_TEXT, KEY_TO_LANGUAGES, SIDEBAR_TEXT
 from functions_plotting import build_gb_county_map
+
+LANGUAGE_TO_KEY = {lang: code for code, lang in KEY_TO_LANGUAGES.items()}
 
 # Load base app data
 DATA_DIR = Path("data")
 county_plot_dat = pd.read_csv(DATA_DIR / "county_plot_dat.csv")
 
 placename_strings_reference = pd.read_csv(DATA_DIR / "placename_strings_reference.csv")
+print("Columns:", placename_strings_reference.columns.tolist())
+print("Sample origins:", placename_strings_reference["origin"].dropna().unique()[:10])
 
 
 gb_boundaries = gpd.read_file(DATA_DIR / "gb_boundaries.geojson")[
@@ -23,14 +26,15 @@ gb_boundaries = gpd.read_file(DATA_DIR / "gb_boundaries.geojson")[
 )
 
 ORIGINS = sorted(county_plot_dat["origin"].dropna().unique().tolist())
-DEFAULT_ORIGIN = ORIGINS if ORIGINS else ""
+DEFAULT_ORIGIN = next(iter(ORIGINS), "")
 
 DOWNLOADABLE_TABLES: dict[str, pd.DataFrame] = {
     "Origins and strings": placename_strings_reference,
-    # "Place names data": placenames_dat_raw,
     "County level data": county_plot_dat,
 }
-# define ui
+
+
+# DEFINE UI ####
 app_ui = ui.page_sidebar(
     ui.sidebar(
         ui.input_select(
@@ -82,24 +86,19 @@ app_ui = ui.page_sidebar(
 )
 
 
-# define reactive
+# DEFINE SERVER ####
 def server(input, output, session):
     @reactive.calc
-
-    # filter for selected origin
     def filtered_origin_df() -> pd.DataFrame:
         chosen = input.selected_origin() or DEFAULT_ORIGIN
         return county_plot_dat[county_plot_dat["origin"] == chosen].drop_duplicates()
 
     @render.text
-
-    # set title with origin
     def single_map_title() -> str:
         chosen = input.selected_origin() or DEFAULT_ORIGIN
         return f"Percentage of Place Names with {chosen} Origin"
 
     @render_widget
-    # make map
     def single_origin_map():
         chosen = input.selected_origin() or DEFAULT_ORIGIN
         return build_gb_county_map(
@@ -110,30 +109,43 @@ def server(input, output, session):
         )
 
     @reactive.calc
-    # table for downloading
-    def filtered_active_df() -> pd.DataFrame:
-        df = DOWNLOADABLE_TABLES[input.selected_table()]
-        # Case-insensitive check for an 'origin' column
-        origin_cols = [c for c in df.columns if c.lower() == "origin"]
-        if origin_cols:
-            col = origin_cols[0]
-            return df[df[col] == input.selected_origin()].copy()
-        return df
+    def active_df() -> pd.DataFrame:
+        df = DOWNLOADABLE_TABLES[input.selected_table()].copy()
+        df = df.drop(columns=["geometry"], errors="ignore")
+
+        if "origin" in df.columns:
+            chosen = input.selected_origin() or DEFAULT_ORIGIN
+            abbr = LANGUAGE_TO_KEY.get(chosen)
+
+            # Exact full-name match (for county-level table)
+            full_match = df["origin"] == chosen
+
+            # Exact token match on comma-separated codes (for origins & strings table)
+            if abbr and not full_match.any():
+                abbr_match = (
+                    df["origin"]
+                    .fillna("")
+                    .apply(
+                        lambda cell: (
+                            abbr in [token.strip() for token in str(cell).split(",")]
+                        )
+                    )
+                )
+                df = df[abbr_match]
+            else:
+                df = df[full_match]
+
+        return df.reset_index(drop=True)
 
     @render.data_frame
     def active_data_table():
-        return render.DataGrid(filtered_active_df(), filters=True)
+        return render.DataGrid(active_df(), filters=True)
 
     @render.download(
-        filename=lambda: (
-            f"{input.selected_table().lower().replace(' ', '_')}_"
-            f"{input.selected_origin().lower().replace(' ', '_')}.csv"
-        )
+        filename=lambda: f"{input.selected_table().lower().replace(' ', '_')}.csv"
     )
     def download_table_csv():
-        buf = io.StringIO()
-        filtered_active_df().to_csv(buf, index=False)
-        yield buf.getvalue()
+        yield active_df().to_csv(index=False)
 
 
 app = App(app_ui, server)

@@ -17,36 +17,6 @@ ONS_PLACENAMES_URL = "https://open-geography-portalx-ons.hub.arcgis.com/datasets
 
 ALLOWED_STRING_POSITIONS = ["interfix", "prefix", "standalone", "suffix"]
 
-# ui end
-
-SIDEBAR_TEXT = ""
-
-EXPLAINER_TEXT_LEAD = (
-    "Place origin is determined by whether the place name contains a certain prefix or suffix from a particular origin.\n\n"
-    "Some prefixes can be from multiple origins. "
-    "Where this occurs, the count for that word is divided by the number of origins that it can represent.\n\n"
-)
-
-WIKI_URL_TEXT = (
-    "Origins and place name word parts from Wikipedia (various references) "
-    + WIKI_URL
-    + "\n\n"
-)
-
-NATURAL_EARTH_URL = "https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/"
-
-ONS_PLACENAMES_URL_TEXT = (
-    "Place names data and locations from Office of National Statistics (ONS) "
-    + ONS_PLACENAMES_URL
-    + "\n\n"
-)
-
-COUNTY_BOUNDARIES_TXT = (
-    "County boundaries data from Natural Earth " + NATURAL_EARTH_URL + "\n\n"
-)
-
-EXPLAINER_TEXT = f"{EXPLAINER_TEXT_LEAD} {WIKI_URL_TEXT} {ONS_PLACENAMES_URL_TEXT} {COUNTY_BOUNDARIES_TXT} "
-
 
 # full origin names and abbreviations
 KEY_TO_LANGUAGES = {
@@ -64,6 +34,9 @@ KEY_TO_LANGUAGES = {
     "SG": "Scots Gaelic",
     "W": "Welsh",
 }
+
+# make as single line
+LANGUAGE_TO_KEY = {v: k for k, v in KEY_TO_LANGUAGES.items()}
 
 # Used when preparing data for the map and general output formatting
 key_to_languages_table = pd.DataFrame(
@@ -195,3 +168,52 @@ TERMINAL_REMOVE_STRINGS = [
     "view",
     "village",
 ]
+
+
+# ui end
+
+SIDEBAR_TEXT = ""
+
+EXPLAINER_TEXT_LEAD = (
+    "The aim of this app is to show which parts of the county are associated with which tribal origins, based on the place names. "
+    "Place origin is determined by whether the place name contains a certain prefix or suffix from a particular origin.\n\n"
+    "Some prefixes can be from multiple origins. "
+    "Where this occurs, the count for that word is divided by the number of origins that it can represent.\n\n"
+)
+
+WIKI_URL_TEXT = (
+    "Origins and place name word parts from Wikipedia. "
+    + WIKI_URL
+    + "\n"
+    + "Where prefix/suffix position is not provided, it is infered using the example place names. "
+    + "\n\n"
+)
+
+NATURAL_EARTH_URL = "https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/"
+
+
+ONS_PLACENAMES_URL_TEXT = (
+    f"Place names data and locations from Office of National Statistics (ONS)."
+    f"{ONS_PLACENAMES_URL}"
+    f"\n"
+    f"Place levels used are {', '.join(PLACE_TYPES)}. "
+    f"LOC-level locations from Cornwall are omitted due to high density of miscellaneous names.\n\n"
+)
+
+COUNTY_BOUNDARIES_TXT = (
+    "County boundaries data from Natural Earth "
+    + NATURAL_EARTH_URL
+    + "\n"
+    + "To prevent duplication of place names, common words like Park and "
+    + "Field are removed, then locations are grouped by the core place name, "
+    "and filtered for the one with the shortest original place name. "
+)
+
+# EXPLAINER_TEXT = f"{EXPLAINER_TEXT_LEAD}\n\n{WIKI_URL_TEXT}\n\n{ONS_PLACENAMES_URL_TEXT}\n\n{COUNTY_BOUNDARIES_TXT}"
+EXPLAINER_TEXT = (
+    EXPLAINER_TEXT_LEAD
+    + WIKI_URL_TEXT
+    + ONS_PLACENAMES_URL_TEXT
+    + COUNTY_BOUNDARIES_TXT
+    + "\n\nWritten in the Python language."
+)

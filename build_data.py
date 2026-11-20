@@ -29,7 +29,7 @@ def run_pipeline() -> None:
     out_dir = Path("data")
     out_dir.mkdir(exist_ok=True)
 
-    # pull table of origins and text strings from wiki
+    # Pull table of origins and text strings from wiki
     wiki_table_raw = pull_wiki_origin_strings(wiki_url=WIKI_URL)
     wiki_table_raw.to_csv(out_dir / "wiki_table_raw.csv", index=False)
 
