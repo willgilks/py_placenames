@@ -161,6 +161,7 @@ def build_gb_county_map(
         (f"{round(map_bins[i], 1)}–{round(map_bins[i + 1], 1)}%", bin_colors[i])
         for i in range(len(map_bins) - 1)
     ]
+
     for label, hex_col in reversed(legend_entries):
         fig.add_trace(
             go.Scatter(
@@ -179,47 +180,47 @@ def build_gb_county_map(
             )
         )
 
-        fig.update_layout(
-            autosize=True,
-            height=560,
-            margin={"l": 45, "r": 12, "t": 12, "b": 32},
-            paper_bgcolor="white",
-            plot_bgcolor="white",
-            dragmode="pan",
-            xaxis={
-                "visible": False,
-                "range": [-7.6, 2.2],
-                "autorange": False,
-                "automargin": False,
-                "constrain": "domain",
-                "fixedrange": False,
-            },
-            yaxis={
-                "visible": False,
-                "range": [49.8, 60.5],
-                "autorange": False,
-                "automargin": False,
-                "scaleanchor": "x",
-                "scaleratio": 1.72,
-                "constrain": "domain",
-                "fixedrange": False,
-            },
-            legend={
-                "title": {"text": f"<b>{ptitle}</b>", "font": {"size": 11}},
-                "font": {"size": 10},
-                "x": 0.99,
-                "y": 0.99,
-                "xanchor": "right",
-                "yanchor": "top",
-                "bgcolor": "rgba(255, 255, 255, 0.95)",
-                "bordercolor": "#333333",
-                "borderwidth": 0.8,
-            },
-            hoverlabel={
-                "bgcolor": "white",
-                "font_size": 11,
-                "align": "left",
-            },
-        )
+    fig.update_layout(
+        autosize=True,
+        height=720,
+        margin={"l": 45, "r": 12, "t": 12, "b": 32},
+        paper_bgcolor="white",
+        plot_bgcolor="white",
+        dragmode="pan",
+        xaxis={
+            "visible": False,
+            "range": [-7.6, 2.2],
+            "autorange": False,
+            "automargin": False,
+            "constrain": "domain",
+            "fixedrange": False,
+        },
+        yaxis={
+            "visible": False,
+            "range": [49.8, 60.5],
+            "autorange": False,
+            "automargin": False,
+            "scaleanchor": "x",
+            "scaleratio": 1.72,
+            "constrain": "domain",
+            "fixedrange": False,
+        },
+        legend={
+            "title": {"text": f"<b>{ptitle}</b>", "font": {"size": 11}},
+            "font": {"size": 10},
+            "x": 0.99,
+            "y": 0.99,
+            "xanchor": "right",
+            "yanchor": "top",
+            "bgcolor": "rgba(255, 255, 255, 0.95)",
+            "bordercolor": "#333333",
+            "borderwidth": 0.8,
+        },
+        hoverlabel={
+            "bgcolor": "white",
+            "font_size": 11,
+            "align": "left",
+        },
+    )
 
     return fig

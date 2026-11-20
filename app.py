@@ -140,6 +140,7 @@ app_ui = ui.page_fluid(
             full_screen=True,
         ),
         col_widths=(2, 5, 5),
+        # col_widths=(2, 4, 6),
     ),
     # About text
     ui.card(
@@ -252,7 +253,8 @@ def server(input, output, session):
 
     @render.data_frame
     def active_data_table():
-        return render.DataGrid(active_df(), filters=True)
+        # return render.DataGrid(active_df(), filters=True)
+        return render.DataGrid(active_df(), filters=True, height="640px")
 
     @render.download(
         filename=lambda: f"{input.selected_table().lower().replace(' ', '_')}.csv"
