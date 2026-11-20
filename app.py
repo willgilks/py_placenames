@@ -83,26 +83,22 @@ app_ui = ui.page_sidebar(
             ui.markdown(SIDEBAR_TEXT),
             class_="text-muted small",
         ),
+        width=260,
     ),
-    ui.navset_card_tab(
-        ui.nav_panel(
-            "Map",
+    ui.layout_columns(
+        # Middle column: Map
+        ui.card(
             ui.card_header(ui.output_text("single_map_title")),
             output_widget("single_origin_map"),
+            full_screen=True,
         ),
-        ui.nav_panel(
-            "About",
-            ui.div(
-                ui.markdown(EXPLAINER_TEXT),
-                class_="p-3",
-            ),
-        ),
-        ui.nav_panel(
-            "Data",
+        # Right column: Data selector, Download button & Table
+        ui.card(
+            ui.card_header("Data"),
             ui.div(
                 ui.input_select(
                     "selected_table",
-                    "Dataset",
+                    "Table",
                     choices=list(DOWNLOADABLE_TABLES.keys()),
                 ),
                 ui.download_button(
@@ -113,9 +109,17 @@ app_ui = ui.page_sidebar(
                 class_="d-flex align-items-end gap-3 mb-2",
             ),
             ui.output_data_frame("active_data_table"),
+            full_screen=True,
         ),
-        id="main_tabs",
-        full_screen=True,
+        col_widths=(6, 6),
+    ),
+    # Bottom section: Explainer / About text
+    ui.card(
+        ui.card_header("About"),
+        ui.div(
+            ui.markdown(EXPLAINER_TEXT),
+            class_="small",
+        ),
     ),
     title="British Place Name Origins",
 )
