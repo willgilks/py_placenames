@@ -33,18 +33,21 @@ DOWNLOADABLE_TABLES: dict[str, pd.DataFrame] = {
     "Place level data": matched_and_filtered_dat,
 }
 
-# Pre-build all origin figures once at startup
-PREBUILT_MAPS: dict[str, go.Figure] = {
-    origin: build_gb_county_map(
-        county_data=county_plot_dat[
-            county_plot_dat["origin"] == origin
-        ].drop_duplicates(),
-        ptitle=origin,
-        gb_boundaries=gb_boundaries,
-        hover_examples_max_lines=5,
-    )
-    for origin in ORIGINS
-}
+PREBUILT_MAPS: dict[str, go.Figure] = {}
+
+
+def get_origin_map(origin: str) -> go.Figure:
+    """Builds and caches the Plotly figure for a given origin on first request."""
+    if origin not in PREBUILT_MAPS:
+        PREBUILT_MAPS[origin] = build_gb_county_map(
+            county_data=county_plot_dat[
+                county_plot_dat["origin"] == origin
+            ].drop_duplicates(),
+            ptitle=origin,
+            gb_boundaries=gb_boundaries,
+            hover_examples_max_lines=5,
+        )
+    return PREBUILT_MAPS[origin]
 
 
 def _match_token_column(series: pd.Series, abbr: str) -> pd.Series:
@@ -113,7 +116,7 @@ app_ui = ui.page_sidebar(
         ),
         col_widths=(6, 6),
     ),
-    # Bottom section: Explainer / About text
+    # Bottom section: About text
     ui.card(
         ui.card_header("About"),
         ui.div(
@@ -127,7 +130,7 @@ app_ui = ui.page_sidebar(
 
 # DEFINE SERVER ####
 def server(input, output, session):
-    map_widget = go.FigureWidget(PREBUILT_MAPS[DEFAULT_ORIGIN])
+    map_widget = go.FigureWidget(get_origin_map(DEFAULT_ORIGIN))
 
     @reactive.calc
     def chosen_origin() -> str:
@@ -143,11 +146,25 @@ def server(input, output, session):
 
     @reactive.effect
     def _update_map():
-        target = PREBUILT_MAPS[chosen_origin()]
+        target = get_origin_map(chosen_origin())
+
         with map_widget.batch_update():
-            map_widget.data = []
-            map_widget.add_traces(target.data)
-            map_widget.layout.legend = target.layout.legend
+            for cur_trace, new_trace in zip(map_widget.data, target.data):
+                if cur_trace.fill == "toself":
+                    # County polygon. update only colour and hover text
+                    cur_trace.fillcolor = new_trace.fillcolor
+                    cur_trace.text = new_trace.text
+                else:
+                    # Legend dummy marker. update label and color
+                    cur_trace.name = new_trace.name
+                    cur_trace.marker.color = new_trace.marker.color
+                    cur_trace.visible = True
+
+            # Hide any extra legend slots if target has fewer bins than initial map
+            for extra_trace in map_widget.data[len(target.data) :]:
+                extra_trace.visible = False
+
+            map_widget.layout.legend.title.text = target.layout.legend.title.text
 
     @reactive.calc
     def active_df() -> pd.DataFrame:
