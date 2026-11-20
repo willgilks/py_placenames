@@ -253,8 +253,7 @@ def server(input, output, session):
 
     @render.data_frame
     def active_data_table():
-        # return render.DataGrid(active_df(), filters=True)
-        return render.DataGrid(active_df(), filters=True, height="640px")
+        return render.DataGrid(active_df(), filters=True)
 
     @render.download(
         filename=lambda: f"{input.selected_table().lower().replace(' ', '_')}.csv"
